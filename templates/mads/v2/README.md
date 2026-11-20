@@ -1,0 +1,17 @@
+# MADS v2.0 portable templates
+
+All examples are non-operational placeholders and do not grant source rights or start agents.
+
+| File | Purpose |
+|---|---|
+| PROJECT-MANIFEST.example.yaml | Project-local canonical Git, roles, isolation and admission |
+| MADS-VERSION-LOCK.example.yaml | Each project's pinned standard version, release digest, and accepted source |
+| READ-ONLY-ONBOARDING.example.md | First WATCHDOG_ATTACH_READ_ONLY/ACK, no code rights |
+| SOURCE-SESSION-START.example.md | Separate source-write session lease and second ACK/status |
+| SOURCE-HANDOFF.example.yaml | Exact source HEAD/TREE/lock, test logs and Git bundle proof |
+| INTEGRATION-HANDOFF.example.md | Independent QA/optimization of Owner-accepted source |
+| ROLE-REPORT.example.md | Evidence and honest product/task/QA Kanban outcomes |
+| PILOT-ACCEPTANCE.example.md | G0–G13 acceptance drills with PASS/BLOCKED/NOT_RUN |
+| NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md | Copy-ready Russian project Owner instruction |
+
+Copy templates into **your own** project repository, replace placeholders with actual Git refs, toolchain and owner authorization, test role-source write admission and bundle restore. Retain separate project-private source credentials. Do not copy another project's role sessions or code.
