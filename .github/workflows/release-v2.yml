@@ -24,7 +24,7 @@ jobs:
           python3 -m py_compile scripts/build_release.py
           python3 scripts/build_release.py --out "$RUNNER_TEMP/mads-build"
           (cd "$RUNNER_TEMP/mads-build" && sha256sum -c mads-standard-v2.0.0.zip.sha256)
-          sha256sum -c dist/mads-standard-v2.0.0.zip.sha256
+          (cd dist && sha256sum -c mads-standard-v2.0.0.zip.sha256)
           python3 - <<'PY'
           import zipfile
           from pathlib import Path
