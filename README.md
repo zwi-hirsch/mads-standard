@@ -14,11 +14,13 @@ Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in f
 - One canonical writable Git authority per project, optionally mirrored across GitHub/Gitea. A source lease never gives production permissions.
 - Finite READY queues and a shared deterministic Git Watchdog support work; inactive ordinary chats do not execute autonomously.
 
-## Stable release v2.0.0
+## Stable release v2.0.1
 
-The first stable release is [v2.0.0](https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.0), published under [Apache-2.0](LICENSE). Download the [verified ZIP](https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.0/mads-standard-v2.0.0.zip) and [SHA-256 sidecar](https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.0/mads-standard-v2.0.0.zip.sha256). ZIP SHA-256: `d1953b5100adf07743c1423cb42cca52f3b99b323a443b42ded7eaabb6380903`. Immutable release tag commit: `25220aac91d56b843e0a1539cf64f97189cfe3f1`.
+The recommended version is [v2.0.1](https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.1) (Apache-2.0). It changes the Russian bootstrap prompt so the user supplies **only the project name**; the Owner discovers repository, stack, roles and project architecture. No source/role/security boundary is weakened.
 
-Each adopting project stores the released file's exact checksum and Git tag in its own `docs/mads/MADS-VERSION-LOCK.yaml`. The project needs only its own private Git credentials; public standard download never requires AURORA or other project access.
+Download the [ZIP](https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.1/mads-standard-v2.0.1.zip) and its [SHA-256 checksum](https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.1/mads-standard-v2.0.1.zip.sha256). Verify the actual ZIP bytes; pin the release version/tag/digest in each adopting project's own Git.
+
+The original [v2.0.0](https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.0) remains immutable with original SHA-256 `d1953b5100adf07743c1423cb42cca52f3b99b323a443b42ded7eaabb6380903`. Public main is mutable; it must not be treated as a pinned release.
 
 ## Project onboarding
 
