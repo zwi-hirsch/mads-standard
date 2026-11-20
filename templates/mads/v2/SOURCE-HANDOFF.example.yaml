@@ -1,0 +1,27 @@
+# MADS v2.0 portable example; placeholders are NOT valid permissions or real test evidence.
+schema: mads.source-handoff.v2
+project_id: example
+task_ids: [PROJECT-CI-001]
+author_role: project-ci-01
+session_id: project-ci-01-20261120-dev-s001
+lease_epoch: 1
+base_main: "<40-hex verified main commit>"
+prerequisite_head: "<last independently accepted base HEAD>"
+source_head: "<new remote Git HEAD>"
+source_tree: "<new exact Git TREE>"
+lock_sha256: "<exact file-content hash or null>"
+changed_paths: ["src/ci/check.rs", "tests/ci/check_test.rs"]
+review_pr: "<actual draft PR URL>"
+evidence:
+  - command: "cargo test -p example --locked --offline"
+    source_head: "<same exact source HEAD>"
+    rc: 0
+    raw_log_sha256: "<SHA256>"
+bundle:
+  kind: delta # or full
+  sha256: "<SHA256>"
+  prerequisite: "<exact prerequisite HEAD or null>"
+  stored_at: "<actual durable physical destination>"
+  independent_restore: PASS
+next_ready: [PROJECT-CI-002]
+production_authorized: false
