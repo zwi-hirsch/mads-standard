@@ -38,6 +38,6 @@ Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in f
 
 This repository is a **protocol and templates**, not a CI/Watchdog scheduler or live coding agent. No protected branch, source lease or production permission becomes effective until an adopting project installs and independently tests it.
 
-**License:** publisher must select and add a license before the first public release (recommended Apache-2.0 if rights are clear). Until then this is a staged public-distribution candidate, not a licensed software release.
+**License:** Apache License 2.0. See [LICENSE](LICENSE). You may use and modify MADS in private and commercial projects under its terms. Preserve required copyright and licensing notices.
 
 **Maintaining source of truth:** once published, the **mads-standard** repository will be canonical for common MADS versions. Adopting repositories must pin released version+SHA, keep project-specific overlays and never blindly import source histories, customer data or secrets.
