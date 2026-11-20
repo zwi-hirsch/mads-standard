@@ -1,0 +1,45 @@
+name: Verify MADS v2.0.0 source-bound ZIP
+on:
+  pull_request:
+    paths: ['dist/**', '.github/workflows/verify-mads-zip.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  zip:
+    if: github.repository == 'zwi-hirsch/mads-standard'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Independently check ZIP structure, per-file SHA256 and license
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import zipfile
+          from pathlib import Path
+          dist = Path("dist")
+          p = dist/"mads-standard-v2.0.0.zip"
+          expect = (dist/(p.name+".sha256")).read_text().split()[0]
+          actual = hashlib.sha256(p.read_bytes()).hexdigest()
+          assert expect == actual, (expect, actual)
+          with zipfile.ZipFile(p) as z:
+              assert z.testzip() is None
+              names = z.namelist()
+              assert len(names)==19, len(names)
+              base = "mads-standard-v2.0.0/"
+              assert all(s.startswith(base) and '..' not in s and not s.endswith('/') for s in names)
+              manifest=json.loads(z.read(base+"RELEASE-MANIFEST.json"))
+              assert manifest["version"]=="2.0.0" and manifest["draft"] is False
+              for rel,dig in manifest["files_sha256"].items():
+                  assert hashlib.sha256(z.read(base+rel)).hexdigest()==dig, rel
+              sums=z.read(base+"SHA256SUMS.txt").decode().splitlines()
+              for line in sums:
+                  sha,rel=line.split("  ",1)
+                  assert hashlib.sha256(z.read(base+rel)).hexdigest()==sha, rel
+              assert z.read(base+"LICENSE").startswith(b"Apache License\nVersion 2.0")
+              doc=z.read(base+"MULTI-AGENT-DEVELOPMENT-SYSTEM.md").decode()
+              import re
+              assert [int(x) for x in re.findall(r"(?m)^## (\d+)\.",doc)]==list(range(1,27))
+          print("MADS_ZIP_INDEPENDENT_ACCEPTANCE_PASS",actual,len(names))
+          PY
