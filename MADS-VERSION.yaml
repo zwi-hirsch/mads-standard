@@ -1,14 +1,14 @@
 schema: mads.release.v1
 name: MULTI-AGENT DEVELOPMENT SYSTEM
 version: "2.0.0"
-publication_status: LICENSED_RELEASE_CANDIDATE
+publication_status: PUBLIC_ZIP_VERIFIED_RELEASE_REQUESTED
 source_of_truth_after_release: mads-standard
 canonical_branch: main
 artifacts:
   - MULTI-AGENT-DEVELOPMENT-SYSTEM.md
   - templates/mads/v2/
 integrity:
-  release_sha256_manifest: GENERATED_AT_BUILD
+  release_sha256_manifest: d1953b5100adf07743c1423cb42cca52f3b99b323a443b42ded7eaabb6380903
   git_commit_sha: BOUND_BY_GITHUB_RELEASE_TAG_V2_0_0
 adoption:
   copy_into_each_project: true
