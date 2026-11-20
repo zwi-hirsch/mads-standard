@@ -1,4 +1,4 @@
-name: Publish MADS Standard v2.0.0
+name: Publish MADS Standard v2.x
 on:
   push:
     branches: [main]
@@ -23,12 +23,12 @@ jobs:
         run: |
           python3 -m py_compile scripts/build_release.py
           python3 scripts/build_release.py --out "$RUNNER_TEMP/mads-build"
-          (cd "$RUNNER_TEMP/mads-build" && sha256sum -c mads-standard-v2.0.0.zip.sha256)
-          (cd dist && sha256sum -c mads-standard-v2.0.0.zip.sha256)
+          (cd "$RUNNER_TEMP/mads-build" && sha256sum -c mads-standard-v2.0.1.zip.sha256)
           python3 - <<'PY'
           import zipfile
           from pathlib import Path
-          p=Path("dist/mads-standard-v2.0.0.zip")
+          import os
+          p=Path(os.environ["RUNNER_TEMP"])/"mads-build/mads-standard-v2.0.1.zip"
           with zipfile.ZipFile(p) as z:
               assert z.testzip() is None
               assert len(z.namelist()) >= 18
@@ -39,15 +39,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view v2.0.0 >/dev/null 2>&1; then
-            echo "RELEASE_ALREADY_EXISTS: immutable v2.0.0 already published"
+          if gh release view v2.0.1 >/dev/null 2>&1; then
+            echo "RELEASE_ALREADY_EXISTS: immutable v2.0.1 already published"
             exit 0
           fi
-          gh release create v2.0.0 \
-            dist/mads-standard-v2.0.0.zip \
-            dist/mads-standard-v2.0.0.zip.sha256 \
+          gh release create v2.0.1 \
+            "$RUNNER_TEMP/mads-build/mads-standard-v2.0.1.zip" \
+            "$RUNNER_TEMP/mads-build/mads-standard-v2.0.1.zip.sha256" \
             --target "$GITHUB_SHA" \
-            --title "MADS Standard v2.0.0" \
-            --notes "First public Apache-2.0 MADS standard. 26 normative sections, two-stage specialist source activation, independent QA, GitHub/Gitea bridge, exact Git recovery and portable project templates." \
+            --title "MADS Standard v2.0.1" \
+            --notes "Docs-only patch release with one-name autonomous project bootstrap; all 26 normative MADS v2.0 sections and Apache-2.0 retained. Exact source SHA plus ZIP SHA256 sidecar published." \
             --latest
-          gh release view v2.0.0 --json tagName,isDraft,isPrerelease,url,assets
+          gh release view v2.0.1 --json tagName,isDraft,isPrerelease,url,assets
