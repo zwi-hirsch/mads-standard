@@ -1,0 +1,52 @@
+name: Publish MADS Standard v2.0.0
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'MADS-VERSION.yaml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: mads-v2-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'zwi-hirsch/mads-standard'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check executable release build
+        run: |
+          python3 -m py_compile scripts/build_release.py
+          python3 scripts/build_release.py --out dist | tee release-build.log
+          sha256sum -c dist/mads-standard-v2.0.0.zip.sha256
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+          p=Path("dist/mads-standard-v2.0.0.zip")
+          with zipfile.ZipFile(p) as z:
+              assert z.testzip() is None
+              assert len(z.namelist()) >= 18
+              assert any(x.endswith("/LICENSE") for x in z.namelist())
+          print("RELEASE_ZIP_INDEPENDENT_VERIFY_PASS")
+          PY
+      - name: Publish immutable tag and release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v2.0.0 >/dev/null 2>&1; then
+            echo "RELEASE_ALREADY_EXISTS: manual owner review required"
+            exit 1
+          fi
+          gh release create v2.0.0 \
+            dist/mads-standard-v2.0.0.zip \
+            dist/mads-standard-v2.0.0.zip.sha256 \
+            --target "$GITHUB_SHA" \
+            --title "MADS Standard v2.0.0" \
+            --notes "First public Apache-2.0 MADS standard. 26 normative sections, two-stage specialist source activation, independent QA, GitHub/Gitea bridge, exact Git recovery and portable project templates." \
+            --latest
+          gh release view v2.0.0 --json tagName,isDraft,isPrerelease,url,assets
