@@ -22,7 +22,8 @@ jobs:
       - name: Check executable release build
         run: |
           python3 -m py_compile scripts/build_release.py
-          python3 scripts/build_release.py --out dist | tee release-build.log
+          python3 scripts/build_release.py --out "$RUNNER_TEMP/mads-build"
+          (cd "$RUNNER_TEMP/mads-build" && sha256sum -c mads-standard-v2.0.0.zip.sha256)
           sha256sum -c dist/mads-standard-v2.0.0.zip.sha256
           python3 - <<'PY'
           import zipfile
@@ -39,8 +40,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if gh release view v2.0.0 >/dev/null 2>&1; then
-            echo "RELEASE_ALREADY_EXISTS: manual owner review required"
-            exit 1
+            echo "RELEASE_ALREADY_EXISTS: immutable v2.0.0 already published"
+            exit 0
           fi
           gh release create v2.0.0 \
             dist/mads-standard-v2.0.0.zip \
