@@ -18,11 +18,13 @@
 
 ## 2. Самостоятельно получи и зафиксируй MADS
 
-Публичный независимый стандарт — **MADS v2.0.0**, https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.0
+Публичный независимый стандарт — **MADS v2.0.1**, https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.1
 
-ZIP: https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.0/mads-standard-v2.0.0.zip
+ZIP: https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.1/mads-standard-v2.0.1.zip
 
-Ожидаемый SHA-256 архива: `d1953b5100adf07743c1423cb42cca52f3b99b323a443b42ded7eaabb6380903`.
+SHA-256: https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.1/mads-standard-v2.0.1.zip.sha256
+
+Контрольную сумму возьми из **публичного файла `mads-standard-v2.0.1.zip.sha256` того же GitHub Release** и обязательно сверяй с реально скачанным ZIP. Не придумывай SHA и не используй хэш предыдущей версии.
 
 Сам получи этот публичный релиз и сверь реальные байты и манифест, если доступен инструмент. Если скачивание невозможно, найди уже установленную собственную pinned-копию стандарта. Если ни того ни другого нет, зафиксируй `BLOCKED_MADS_BOOTSTRAP` и продолжи безопасную инвентаризацию, не заменяй MADS догадками.
 
