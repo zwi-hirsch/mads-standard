@@ -1,18 +1,18 @@
 schema: mads.release.v1
 name: MULTI-AGENT DEVELOPMENT SYSTEM
 version: "2.0.1"
-publication_status: RELEASE_CANDIDATE
+publication_status: RELEASED
 source_of_truth_after_release: mads-standard
 canonical_branch: main
 artifacts:
   - MULTI-AGENT-DEVELOPMENT-SYSTEM.md
   - templates/mads/v2/
 integrity:
-  release_sha256_manifest: TO_BE_PRODUCED_BY_RELEASE_CI
-  git_commit_sha: IMMUTABLE_TAG_CREATED_BY_RELEASE_CI
+  release_sha256_manifest: 49767a3e22ba019cc348874d9709c446cd36d5e59aab032d832f736675a72245
+  git_commit_sha: 61260bd11d1d43a28787f7f452a5ee5006538a03
   release_tag: v2.0.1
   release_url: https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.1
-  zip_sha256: VERIFY_PUBLISHED_RELEASE_ASSET
+  zip_sha256: 49767a3e22ba019cc348874d9709c446cd36d5e59aab032d832f736675a72245
 adoption:
   copy_into_each_project: true
   pin_version_and_artifact_sha256: true
