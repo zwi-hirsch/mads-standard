@@ -50,13 +50,15 @@ def main():
     if missing:
         raise SystemExit("MISSING_RELEASE_FILES: " + ", ".join(missing))
     files = sorted(x for x in ROOT.rglob("*") if x.is_file() and not any(
-        part in {".git", "__pycache__", "dist", ".env", ".secrets"} for part in x.relative_to(ROOT).parts))
+        part in {".git", ".github", "__pycache__", "dist", ".env", ".secrets"} for part in x.relative_to(ROOT).parts))
     unknown = [x.relative_to(ROOT).as_posix() for x in files if
                x.relative_to(ROOT).as_posix() not in set(REQUIRED + ["LICENSE"])]
     if unknown:
         raise SystemExit("UNREVIEWED_RELEASE_FILES: " + ", ".join(unknown))
     if not (ROOT / "LICENSE").is_file() and not args.draft:
         raise SystemExit("LICENSE_REQUIRED: select and add an explicit public reuse license before release")
+    if not args.draft and not (ROOT / "LICENSE").read_text(encoding="utf-8").startswith("Apache License\nVersion 2.0, January 2004"):
+        raise SystemExit("INVALID_RELEASE_LICENSE: expected approved official Apache 2.0 text")
     if not args.draft and "STAGED_NOT_PUBLISHED" in (ROOT/"MADS-VERSION.yaml").read_text(encoding="utf-8"):
         raise SystemExit("VERSION_NOT_FINAL: update MADS-VERSION.yaml status before public release")
     manifest = {}
