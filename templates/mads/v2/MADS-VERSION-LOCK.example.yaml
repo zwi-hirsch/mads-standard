@@ -1,9 +1,9 @@
 schema: mads.project-version-lock.v1
 project_id: REPLACE_PROJECT_ID
 standard: MULTI-AGENT-DEVELOPMENT-SYSTEM
-version: "2.0.0"
+version: "2.0.1"
 release_repo: "PUBLIC_OWNER/mads-standard"
-release_tag: "v2.0.0"
+release_tag: "v2.0.1"
 release_zip_sha256: REPLACE_WITH_ACTUALLY_VERIFIED_RELEASE_SHA256
 standard_git_commit: REPLACE_WITH_ACTUAL_PUBLIC_STANDARD_COMMIT
 project_source_head_at_adoption: REPLACE_WITH_THIS_PROJECTS_ACCEPTED_GIT_SHA

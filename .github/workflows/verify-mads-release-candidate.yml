@@ -1,0 +1,52 @@
+name: Verify MADS release-candidate source and one-name bootstrap
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_release.py'
+      - 'MADS-VERSION.yaml'
+      - 'README.md'
+      - 'templates/mads/v2/**'
+      - '.github/workflows/release-v2.yml'
+      - '.github/workflows/verify-mads-release-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.repository == 'zwi-hirsch/mads-standard'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+      - name: Compile exporter and build deterministic ZIP
+        run: |
+          python3 -m py_compile scripts/build_release.py
+          python3 scripts/build_release.py --out "$RUNNER_TEMP/mads-candidate"
+          (cd "$RUNNER_TEMP/mads-candidate" && sha256sum -c *.zip.sha256)
+      - name: Check release source manifest and one-name prompt
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, json, zipfile, os
+          root=Path(os.environ["RUNNER_TEMP"])/"mads-candidate"
+          archives=list(root.glob("mads-standard-v*.zip"))
+          assert len(archives)==1,archives
+          with zipfile.ZipFile(archives[0]) as z:
+              assert z.testzip() is None
+              files=z.namelist()
+              assert len(files)==19,len(files)
+              prefix=files[0].split("/")[0]+"/"
+              man=json.loads(z.read(prefix+"RELEASE-MANIFEST.json"))
+              assert man["version"]=="2.0.1" and man["draft"] is False
+              for name, expected in man["files_sha256"].items():
+                  assert hashlib.sha256(z.read(prefix+name)).hexdigest()==expected,name
+              doc=z.read(prefix+"MULTI-AGENT-DEVELOPMENT-SYSTEM.md").decode()
+              import re
+              assert [int(n) for n in re.findall(r"(?m)^## ([0-9]+)\.",doc)]==list(range(1,27))
+              prompt=z.read(prefix+"templates/mads/v2/NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md").decode()
+              assert prompt.count("[НАЗВАНИЕ ПРОЕКТА]")==1
+              assert "v2.0.1" in prompt and "sha256" in prompt.lower()
+              assert "SESSION_START" in prompt and "G0–G13" in prompt
+              assert z.read(prefix+"LICENSE").startswith(b"Apache License\nVersion 2.0")
+          print("MADS_V201_ONE_NAME_CANDIDATE_PASS",archives[0])
+          PY
