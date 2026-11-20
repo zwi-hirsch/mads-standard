@@ -1,7 +1,7 @@
 schema: mads.release.v1
 name: MULTI-AGENT DEVELOPMENT SYSTEM
 version: "2.0.0"
-publication_status: PUBLIC_ZIP_VERIFIED_RELEASE_REQUESTED
+publication_status: PUBLIC_ZIP_VERIFIED_RELEASE_RETRY_2
 source_of_truth_after_release: mads-standard
 canonical_branch: main
 artifacts:
