@@ -1,0 +1,19 @@
+schema: mads.release.v1
+name: MULTI-AGENT DEVELOPMENT SYSTEM
+version: "2.0.0"
+publication_status: STAGED_NOT_PUBLISHED
+source_of_truth_after_release: mads-standard
+canonical_branch: main
+artifacts:
+  - MULTI-AGENT-DEVELOPMENT-SYSTEM.md
+  - templates/mads/v2/
+integrity:
+  release_sha256_manifest: GENERATED_AT_BUILD
+  git_commit_sha: PIN_AFTER_PUBLIC_REPO_PUBLISH
+adoption:
+  copy_into_each_project: true
+  pin_version_and_artifact_sha256: true
+  dependency_on_upstream_private_repo: false
+secret_scopes:
+  standard_public_read: NO_TOKEN_REQUIRED
+  each_project_private_git: OWN_LEAST_PRIVILEGE_TOKEN_ONLY
