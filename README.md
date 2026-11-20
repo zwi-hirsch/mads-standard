@@ -38,7 +38,7 @@ Each adopting project stores the released file's exact checksum and Git tag in i
 - [Independent QA handoff](templates/mads/v2/INTEGRATION-HANDOFF.example.md)
 - [Truthful progress report](templates/mads/v2/ROLE-REPORT.example.md)
 - [Pilot evidence G0–G13](templates/mads/v2/PILOT-ACCEPTANCE.example.md)
-- [Bootstrap prompt (RU)](templates/mads/v2/NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md)
+- [Start a new project by providing **only its name** (RU)](templates/mads/v2/NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md)
 
 ## Scope and release
 
