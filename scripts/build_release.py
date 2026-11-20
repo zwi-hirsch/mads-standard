@@ -16,7 +16,14 @@ import zipfile
 ROOT = Path(__file__).resolve().parent.parent
 def project_version():
     text=(ROOT/"MADS-VERSION.yaml").read_text(encoding="utf-8")
-    match=re.search(r'^version:\s*"([0-9]+\.[0-9]+\.[0-9]+)"\s*
+    for line in text.splitlines():
+        if line.startswith("version:"):
+            value=line.split(":",1)[1].strip().strip('"')
+            if re.fullmatch("[0-9]+([.][0-9]+){2}",value):
+                return value
+    raise SystemExit("INVALID_VERSION: require semver in MADS-VERSION.yaml")
+
+VERSION = project_version()
 CORE = "MULTI-AGENT-DEVELOPMENT-SYSTEM.md"
 REQUIRED = [
     "README.md", "SECURITY.md", "PUBLISHING.md", "MADS-VERSION.yaml", CORE,
