@@ -759,7 +759,7 @@ admission:
 - **Canonical project report:** note actual version, active role count, real source PRs, gates G0–G13, deployment/release authority, current Kanban DONE/REMAINING, blockers and exact NEXT_READY tasks. Avoid confusing completed coordination subtasks with completed product functionality.
 
 
-## 27. Mandatory Git-only project artifact transport (proposed v2.0.2 clarification)
+## 27. Mandatory Git-only project artifact transport (v2.0.2)
 
 **Normative:** every inter-agent exchange of project files (source code, inert patches, test fixtures, CI/TAP logs, source-bound evidence, reports, recovery bundles, archives, manifests and memory changes) MUST be committed and remotely verified on the **adopting project's own authorized Git refs** before it is called DELIVERED. Git mail indexes immutable data on Git; source changes require source branch + PR. Chat uploads, agent-local ZIPs, ChatGPT Library, email attachments, cloud drives and temporary download services MUST NOT be an alternate or fallback project artifact transport. A chat may refer to an exact Git ref/path and checksum but cannot itself establish delivery.
 
@@ -771,7 +771,7 @@ admission:
 
 **Secrets and production boundary:** production private roots, credentials, tokens, sensitive unredacted data and authorized host control material MUST NOT be committed to Git, even private Git. Independently approved secure provisioning is an exceptional **operator secret process, not an inter-agent project handoff**. In its absence declare BLOCKED_EXTERNAL_AUTHORIZATION; this section neither establishes an alternative file channel nor grants production, source lease, main merge or host mutation rights.
 
-**Upgrade:** apply in an adopting project via its own reviewed PR, record the pinned upstream release/tag/digest, retain project-specific overrides under explicit ADR, and independently test both a valid Git-patch handoff and a rejected chat-only/archive-only handoff. Existing released v2.0.1 artifacts remain immutable; this is a proposed subsequent patch revision, not a retroactive edit to the v2.0.1 tag.
+**Upgrade:** apply in an adopting project via its own reviewed PR, record the pinned upstream release/tag/digest, retain project-specific overrides under explicit ADR, and independently test both a valid Git-patch handoff and a rejected chat-only/archive-only handoff. Previously released v2.0.1 artifacts remain immutable. v2.0.2 release adoption requires its own verified Git tag, ZIP, and SHA-256 sidecar.
 
-**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0 (proposed post-v2.0.1 addendum).**
+**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.2.**
 
