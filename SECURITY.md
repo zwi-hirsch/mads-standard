@@ -9,4 +9,4 @@ This standard publishes only project-neutral text, configuration examples and op
 - Report a suspected secret exposure privately to the repository owner using GitHub's private report/security contact when configured; do not file a public issue containing credentials.
 - Verify release SHA256 and exact source files before adopting or updating MADS. A template is never evidence that an implementation works.
 
-If project-only credentials cannot access a *private* standard, distribute a public sanitized MADS release, a local ZIP attachment, or pre-commit the standard into the project's own repo. Never share another private project's credential.
+Initial public MADS standard distribution may use the publicly released sanitized ZIP and SHA-256 sidecar; this is not a project-to-agent handoff. For all subsequent **project** artifacts use that project's own authorized Git refs under normative Section 27. Never share another private project's credential.
