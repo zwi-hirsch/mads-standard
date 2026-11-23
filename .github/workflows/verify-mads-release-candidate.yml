@@ -37,16 +37,18 @@ jobs:
               assert len(files)==19,len(files)
               prefix=files[0].split("/")[0]+"/"
               man=json.loads(z.read(prefix+"RELEASE-MANIFEST.json"))
-              assert man["version"]=="2.0.1" and man["draft"] is False
+              assert man["version"]=="2.0.2" and man["draft"] is False
               for name, expected in man["files_sha256"].items():
                   assert hashlib.sha256(z.read(prefix+name)).hexdigest()==expected,name
               doc=z.read(prefix+"MULTI-AGENT-DEVELOPMENT-SYSTEM.md").decode()
               import re
-              assert [int(n) for n in re.findall(r"(?m)^## ([0-9]+)\.",doc)]==list(range(1,27))
+              assert [int(n) for n in re.findall(r"(?m)^## ([0-9]+)\.",doc)]==list(range(1,28))
               prompt=z.read(prefix+"templates/mads/v2/NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md").decode()
               assert prompt.count("[НАЗВАНИЕ ПРОЕКТА]")==1
-              assert "v2.0.1" in prompt and "sha256" in prompt.lower()
+              assert "v2.0.2" in prompt and "sha256" in prompt.lower()
               assert "SESSION_START" in prompt and "G0–G13" in prompt
+              assert "Git-only" in doc and "inter-agent" in doc
+              assert "chat" in doc.lower() and "Library" in doc
               assert z.read(prefix+"LICENSE").startswith(b"Apache License\nVersion 2.0")
-          print("MADS_V201_ONE_NAME_CANDIDATE_PASS",archives[0])
+          print("MADS_V202_GIT_ONLY_CANDIDATE_PASS",archives[0])
           PY
