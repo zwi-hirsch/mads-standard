@@ -23,12 +23,16 @@ jobs:
         run: |
           python3 -m py_compile scripts/build_release.py
           python3 scripts/build_release.py --out "$RUNNER_TEMP/mads-build"
-          (cd "$RUNNER_TEMP/mads-build" && sha256sum -c mads-standard-v2.0.1.zip.sha256)
+          VERSION=$(python3 -c 'import runpy; print(runpy.run_path("scripts/build_release.py")["VERSION"])')
+          (cd "$RUNNER_TEMP/mads-build" && sha256sum -c "mads-standard-v${VERSION}.zip.sha256")
           python3 - <<'PY'
           import zipfile
           from pathlib import Path
           import os
-          p=Path(os.environ["RUNNER_TEMP"])/"mads-build/mads-standard-v2.0.1.zip"
+          import glob
+          matches=glob.glob(os.environ["RUNNER_TEMP"]+"/mads-build/mads-standard-v*.zip")
+          assert len(matches)==1,matches
+          p=Path(matches[0])
           with zipfile.ZipFile(p) as z:
               assert z.testzip() is None
               assert len(z.namelist()) >= 18
@@ -39,15 +43,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view v2.0.1 >/dev/null 2>&1; then
-            echo "RELEASE_ALREADY_EXISTS: immutable v2.0.1 already published"
+          VERSION=$(python3 -c 'import runpy; print(runpy.run_path("scripts/build_release.py")["VERSION"])')
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "RELEASE_ALREADY_EXISTS: immutable v${VERSION} already published"
             exit 0
           fi
-          gh release create v2.0.1 \
-            "$RUNNER_TEMP/mads-build/mads-standard-v2.0.1.zip" \
-            "$RUNNER_TEMP/mads-build/mads-standard-v2.0.1.zip.sha256" \
+          gh release create "v${VERSION}" \
+            "$RUNNER_TEMP/mads-build/mads-standard-v${VERSION}.zip" \
+            "$RUNNER_TEMP/mads-build/mads-standard-v${VERSION}.zip.sha256" \
             --target "$GITHUB_SHA" \
-            --title "MADS Standard v2.0.1" \
-            --notes "Docs-only patch release with one-name autonomous project bootstrap; all 26 normative MADS v2.0 sections and Apache-2.0 retained. Exact source SHA plus ZIP SHA256 sidecar published." \
+            --title "MADS Standard v${VERSION}" \
+            --notes "MADS Git-only inter-agent artifact handoff: normative Section 27, individual UTF-8 patches, independently verified Git manifests, unchanged secret/production boundaries; 27 normative sections and Apache-2.0 retained." \
             --latest
-          gh release view v2.0.1 --json tagName,isDraft,isPrerelease,url,assets
+          gh release view "v${VERSION}" --json tagName,isDraft,isPrerelease,url,assets
