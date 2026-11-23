@@ -88,8 +88,8 @@ def main():
         manifest[rel] = digest(data)
     doc = (ROOT / CORE).read_text(encoding="utf-8")
     headings = [int(m.group(1)) for m in re.finditer(r"^## (\d+)\.", doc, re.M)]
-    if headings != list(range(1, 27)):
-        raise SystemExit("INVALID_STANDARD_SECTIONS: expected Sections 1 through 26")
+    if headings != list(range(1, 28)):
+        raise SystemExit("INVALID_STANDARD_SECTIONS: expected Sections 1 through 27")
     payload = {rel: (ROOT / rel).read_bytes() for rel in manifest}
     release_manifest = json.dumps({
         "schema": "mads.release-manifest.v1",

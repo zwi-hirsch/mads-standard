@@ -758,5 +758,20 @@ admission:
 - **Crash resilience:** whenever source commits, create the independent verified recovery artifact without waiting until full tests. A formal report is never proof of recoverable Git objects.
 - **Canonical project report:** note actual version, active role count, real source PRs, gates G0–G13, deployment/release authority, current Kanban DONE/REMAINING, blockers and exact NEXT_READY tasks. Avoid confusing completed coordination subtasks with completed product functionality.
 
-**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.**
+
+## 27. Mandatory Git-only project artifact transport (v2.0.2)
+
+**Normative:** every inter-agent exchange of project files (source code, inert patches, test fixtures, CI/TAP logs, source-bound evidence, reports, recovery bundles, archives, manifests and memory changes) MUST be committed and remotely verified on the **adopting project's own authorized Git refs** before it is called DELIVERED. Git mail indexes immutable data on Git; source changes require source branch + PR. Chat uploads, agent-local ZIPs, ChatGPT Library, email attachments, cloud drives and temporary download services MUST NOT be an alternate or fallback project artifact transport. A chat may refer to an exact Git ref/path and checksum but cannot itself establish delivery.
+
+**Handoff manifest:** every material handoff MUST carry sender/recipient, exact OWNER ORDER and ACK/STOP/lease, project/canonical base HEAD/TREE/lock, ordered artifact paths, Git blob SHA, SHA-256 of raw bytes, length, file mode, scope/allowlist and patch ordering, actual test command/RC/raw log path or NOT_RUN, and restore/verification instructions. Recipients MUST independently re-fetch remote artifacts, verify hashes, source ancestry, permitted paths and STOP before applying. A fabricated hash, old local TAP, or merely attached ZIP MUST be treated as UNKNOWN/BLOCKED; acceptance requires an actual source review/CI proof.
+
+**READ_ONLY patch handoff:** deliver each inert UTF-8 `.patch` directly in the approved role Git coordination handoff prefix, with separate checksum and manifest. Compressed Git archives are allowed as **secondary transport-only evidence**, never as the sole inspectable patch deliverable. Binary archive content is untrusted: quarantine before fresh `git apply --check`, path/mode/UTF-8 validation, native tests and owner-scoped integration. Preserve immutable mail and previous blobs; corrections are new named artifacts.
+
+**Large artifacts:** comply with platform Git blob limits by splitting safe **non-secret** artifacts into deterministically ordered Git-stored chunks and a manifest with chunk SHA-256 and reconstructed digest. Verify all chunks and fresh restore/strict `git fsck` before claiming durable complete recovery. If policy/permissions/resources prevent Git storage, the handoff is BLOCKED_RESOURCE. Never silently use chat/Library/external hosting instead.
+
+**Secrets and production boundary:** production private roots, credentials, tokens, sensitive unredacted data and authorized host control material MUST NOT be committed to Git, even private Git. Independently approved secure provisioning is an exceptional **operator secret process, not an inter-agent project handoff**. In its absence declare BLOCKED_EXTERNAL_AUTHORIZATION; this section neither establishes an alternative file channel nor grants production, source lease, main merge or host mutation rights.
+
+**Upgrade:** apply in an adopting project via its own reviewed PR, record the pinned upstream release/tag/digest, retain project-specific overrides under explicit ADR, and independently test both a valid Git-patch handoff and a rejected chat-only/archive-only handoff. Previously released v2.0.1 artifacts remain immutable. v2.0.2 release adoption requires its own verified Git tag, ZIP, and SHA-256 sidecar.
+
+**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.2.**
 

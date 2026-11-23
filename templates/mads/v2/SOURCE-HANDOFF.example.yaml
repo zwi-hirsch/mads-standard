@@ -25,3 +25,13 @@ bundle:
   independent_restore: PASS
 next_ready: [PROJECT-CI-002]
 production_authorized: false
+
+# Mandatory for future handoffs when Section 27 is adopted:
+# Artifacts (patches, TAP, recovery, archives) live in the adopting project's OWN Git.
+# For READ_ONLY roles, commit each inert UTF-8 patch separately in the approved
+# role outbound coordination/handoffs/... prefix. Archive-only handoff = BLOCKED.
+# Never deliver project files via chat, Library, email or cloud link.
+# Manifest must include role, ORDER/ACK, source/base HEAD/TREE/lock,
+# ordered Git artifact paths, exact Git blob SHA, raw SHA-256, length,
+# changed-path scope, native test command/RC/log or NOT_RUN and restore checks.
+# Never commit real credentials or production private roots.

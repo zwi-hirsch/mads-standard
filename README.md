@@ -2,7 +2,7 @@
 
 **Portable, Git-native multi-agent software development protocol.** The standard is readable without credentials; individual adopting projects remain isolated and retain their own private Git credentials, code, mailboxes and source approval.
 
-Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in full, particularly its v2.0 normative Sections 18–26.
+Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in full, particularly its normative Sections 18–27.
 
 ## Core model
 
@@ -14,13 +14,13 @@ Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in f
 - One canonical writable Git authority per project, optionally mirrored across GitHub/Gitea. A source lease never gives production permissions.
 - Finite READY queues and a shared deterministic Git Watchdog support work; inactive ordinary chats do not execute autonomously.
 
-## Stable release v2.0.1
+## Stable release v2.0.2
 
-The recommended version is [v2.0.1](https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.1) (Apache-2.0). It changes the Russian bootstrap prompt so the user supplies **only the project name**; the Owner discovers repository, stack, roles and project architecture. No source/role/security boundary is weakened.
+The recommended version is [v2.0.2](https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.2) (Apache-2.0). It adds mandatory Git-only inter-agent project artifact handoff (Section 27) and retains the one-name Russian project bootstrap from v2.0.1. No source/role/security boundary is weakened.
 
-Download the [ZIP](https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.1/mads-standard-v2.0.1.zip) and its [SHA-256 checksum](https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.1/mads-standard-v2.0.1.zip.sha256). Verify the actual ZIP bytes; pin the release version/tag/digest in each adopting project's own Git.
+Download the [ZIP](https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.2/mads-standard-v2.0.2.zip) and its [SHA-256 checksum](https://github.com/zwi-hirsch/mads-standard/releases/download/v2.0.2/mads-standard-v2.0.2.zip.sha256). Verify the actual ZIP bytes; pin the release version/tag/digest in each adopting project's own Git.
 
-The original [v2.0.0](https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.0) remains immutable with original SHA-256 `d1953b5100adf07743c1423cb42cca52f3b99b323a443b42ded7eaabb6380903`. Public main is mutable; it must not be treated as a pinned release.
+Earlier released [v2.0.1](https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.1) and [v2.0.0](https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.0) remain immutable. The v2.0.0 ZIP SHA-256 is `d1953b5100adf07743c1423cb42cca52f3b99b323a443b42ded7eaabb6380903`. Public main is mutable; it must not be treated as a pinned release.
 
 ## Project onboarding
 
@@ -49,3 +49,7 @@ This repository is a **protocol and templates**, not a CI/Watchdog scheduler or 
 **License:** Apache License 2.0. See [LICENSE](LICENSE). You may use and modify MADS in private and commercial projects under its terms. Preserve required copyright and licensing notices.
 
 **Maintaining source of truth:** once published, the **mads-standard** repository will be canonical for common MADS versions. Adopting repositories must pin released version+SHA, keep project-specific overlays and never blindly import source histories, customer data or secrets.
+
+## Git-only inter-agent handoff (v2.0.2)
+
+Normative [Section 27](MULTI-AGENT-DEVELOPMENT-SYSTEM.md#27-mandatory-git-only-project-artifact-transport-v202) requires all non-secret inter-agent **project** artifacts and individual UTF-8 source patches to travel through the adopting project's own authorized Git, with exact blob/SHA-256 manifests and remote readback. Chat ZIPs, Library, email and temporary storage are not artifact handoffs. Production keys stay outside Git and require independently approved secret provisioning. **A version bump in source is not a published release until the GitHub release tag, archive, sidecar and verification exist.**
