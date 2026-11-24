@@ -777,5 +777,18 @@ admission:
 
 **Upgrade:** apply in an adopting project via its own reviewed PR, record the pinned upstream release/tag/digest, retain project-specific overrides under explicit ADR, and independently test both a valid Git-patch handoff and a rejected chat-only/archive-only handoff. Previously released v2.0.1 artifacts remain immutable. v2.0.2 release adoption requires its own verified Git tag, ZIP, and SHA-256 sidecar.
 
-**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.2.**
+## 28. Mandatory role continuity on agent/session replacement (v2.0.3)
+
+A chat/session number is not an engineering role identifier. Replacing a runtime MUST preserve the existing canonical role ID, mailbox, backlog, scope and obligations. A genuinely new role or explicit role succession requires a separate Owner decision and documented mapping; neither is inferred from a chat title.
+
+Before successor source writes, Owner and successor MUST:
+1. Restore the previous role and **entire** ordered queue, including primary, reserve, blocked, deferred, pending-review and dependency tasks, not merely the latest ORDER. Record every task's immutable ID, status, dependency, branch/HEAD/TREE, evidence, open PR and next action.
+2. Reconcile DONE only against accepted evidence; classify partial, untested, failed and missing artifacts explicitly. Preserve all historical source refs, logs, ACKs and unresolved commitments.
+3. Fence and close the previous source-write lease with an immutable Owner STOP/transfer, monotonic epoch and verified status; require old runtime stop acknowledgement or independently enforced revocation before enabling a competing writer. If fencing cannot be established, block source writes; read-only recovery may proceed.
+4. Transfer source, test evidence, recovery artifacts and the complete obligation ledger using Section 27 Git-only transport. Verify exact remote pins, scope, custody, and independently recoverable bytes; keep missing proof as BLOCKED rather than declaring tasks complete.
+5. ACK the successor session and verify the current lease/status against the same role (or explicit successor mapping), then immediately continue the first dependency-safe READY source task in the same invocation. No extra probation, repeated onboarding or routine human prompt; do not bypass safety, STOP, independent QA or external authorization.
+
+Acceptance: a changed chat number alone creates zero new roles or leases; all open task IDs remain assigned exactly once; old write authority is fenced; source and evidence remain reachable; blocked tasks remain visible; successor begins the next safe task. Test lost ACK, incomplete ledger, stale epoch, competing writer, missing evidence, and explicit role renaming. A source policy is not proof that runtime fencing/recovery works.
+
+**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.3 candidate.**
 
