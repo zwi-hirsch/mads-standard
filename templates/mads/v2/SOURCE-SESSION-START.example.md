@@ -14,7 +14,10 @@ base_main: "<actual exact main commit>"
 source_head: "<exact work-branch commit>"
 source_tree: "<exact Git tree>"
 lock_sha256: "<lock content hash or null>"
-source_write_authorized: true
+source_write_authorized: true # conditional offer; effective status stays false until verified activation
+activation_mode: IMMEDIATE_AFTER_VERIFIED_PREFLIGHT_ACK_AND_STATUS
+first_source_task: "<real implementation task ID>"
+monitoring_mode: "<REAL_SCAN or EXPLICIT_BOUNDED_MANUAL_EXCEPTION>"
 allowed_paths: ["src/ci/**", "tests/ci/**"]
 denied_paths: ["Cargo.lock", "secrets/**", ".github/workflows/**"]
 production_authorized: false
@@ -25,4 +28,4 @@ status: OPEN
 
 # Source SESSION_START — template only
 
-Replace every placeholder with actual exact source, write/deny scope, expiry, task queue and authorized Owner identity. This example does not activate a specialist; verified second ACK, status and strong repository write control are still required.
+Replace every placeholder with actual exact source, write/deny scope, expiry, task queue and authorized Owner identity. This example does not activate a specialist; verified first and second ACKs, exact pins, STOP/lease/path checks and status readback are required. Start the first task immediately after activation, without a new human turn. A manual exception never waives write fencing or grants G9 PASS.
