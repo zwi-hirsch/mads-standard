@@ -1,7 +1,7 @@
 schema: mads.release.v1
 name: MULTI-AGENT DEVELOPMENT SYSTEM
-version: "2.0.2"
-publication_status: RELEASED
+version: "2.0.3"
+publication_status: STAGED_NOT_PUBLISHED
 source_of_truth_after_release: mads-standard
 canonical_branch: main
 artifacts:
@@ -10,8 +10,8 @@ artifacts:
 integrity:
   release_sha256_manifest: VERIFY_RELEASE_ASSET_SHA256_AT_PUBLICATION
   git_commit_sha: RESOLVE_FROM_IMMUTABLE_RELEASE_TAG
-  release_tag: v2.0.2
-  release_url: https://github.com/zwi-hirsch/mads-standard/releases/tag/v2.0.2
+  release_tag: v2.0.3
+  release_url: null # set only after immutable release is published
   zip_sha256: VERIFY_RELEASE_ASSET_SHA256_AT_PUBLICATION
 adoption:
   copy_into_each_project: true
