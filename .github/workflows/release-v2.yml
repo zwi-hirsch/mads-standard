@@ -53,6 +53,6 @@ jobs:
             "$RUNNER_TEMP/mads-build/mads-standard-v${VERSION}.zip.sha256" \
             --target "$GITHUB_SHA" \
             --title "MADS Standard v${VERSION}" \
-            --notes "MADS Git-only inter-agent artifact handoff: normative Section 27, individual UTF-8 patches, independently verified Git manifests, unchanged secret/production boundaries; 27 normative sections and Apache-2.0 retained." \
+            --notes "MADS immediate source admission, Git-only artifact handoff and abrupt-context recovery: Sections 18, 27–29; unchanged secret/production boundaries and Apache-2.0." \
             --latest
           gh release view "v${VERSION}" --json tagName,isDraft,isPrerelease,url,assets

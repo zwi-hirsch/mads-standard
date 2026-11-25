@@ -54,6 +54,10 @@ scheduler:
   reserve_tasks_per_queue: 7
   source_ready_evaluator_tested: false
 recovery:
+  manual_replacement_convention: EXPLICIT_HUMAN_REPLACEMENT_REQUIRED # standing convention requires explicit human approval
+  abrupt_context_recovery: true
+  old_final_ack_required_for_authorized_manual_crash: false
+  fencing: COOPERATIVE_ONLY_UNLESS_ENFORCED_AND_TESTED
   push_and_verify_after_each_source_task: true
   independent_verified_bundle: true
   full_bundle_if_base_missing: true

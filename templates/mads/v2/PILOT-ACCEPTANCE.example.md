@@ -22,3 +22,5 @@
 **Pilot verdict:** MADS_SOURCE_READY / MADS_PILOT_BLOCKED / MADS_OPS_PILOT_PASS, with explicit acceptance authority and source SHA. Documentation alone cannot satisfy a pilot gate.
 
 Verify no probation, no extra human approval turn after all conditions pass; deny unACKed/stale/conflicting lease. A manual exception is not G9 PASS.
+
+G10 includes the §29 abrupt-context recovery drill: no old final ACK, inherited obligations and remote source, new epoch/ACK/CAS, stale/concurrent writer rejection. Record cooperative vs enforced fencing separately; an example matrix is not a live drill.

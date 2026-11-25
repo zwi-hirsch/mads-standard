@@ -31,6 +31,7 @@ REQUIRED = [
     "templates/mads/v2/MADS-VERSION-LOCK.example.yaml",
     "templates/mads/v2/PROJECT-MANIFEST.example.yaml",
     "templates/mads/v2/SOURCE-SESSION-START.example.md",
+    "templates/mads/v2/SESSION-RECOVERY.example.md",
     "templates/mads/v2/SOURCE-HANDOFF.example.yaml",
     "templates/mads/v2/READ-ONLY-ONBOARDING.example.md",
     "templates/mads/v2/INTEGRATION-HANDOFF.example.md",
@@ -88,8 +89,8 @@ def main():
         manifest[rel] = digest(data)
     doc = (ROOT / CORE).read_text(encoding="utf-8")
     headings = [int(m.group(1)) for m in re.finditer(r"^## (\d+)\.", doc, re.M)]
-    if headings != list(range(1, 28)):
-        raise SystemExit("INVALID_STANDARD_SECTIONS: expected Sections 1 through 27")
+    if headings != list(range(1, 30)):
+        raise SystemExit("INVALID_STANDARD_SECTIONS: expected Sections 1 through 29")
     payload = {rel: (ROOT / rel).read_bytes() for rel in manifest}
     release_manifest = json.dumps({
         "schema": "mads.release-manifest.v1",

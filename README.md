@@ -2,7 +2,7 @@
 
 **Portable, Git-native multi-agent software development protocol.** The standard is readable without credentials; individual adopting projects remain isolated and retain their own private Git credentials, code, mailboxes and source approval.
 
-Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in full, particularly its normative Sections 18–27.
+Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in full, particularly its normative Sections 18–29.
 
 ## Core model
 
@@ -57,3 +57,8 @@ Normative [Section 27](MULTI-AGENT-DEVELOPMENT-SYSTEM.md#27-mandatory-git-only-p
 ## v2.0.3 candidate — immediate source admission
 
 Section 18 defines no-probation admission with scoped conditional activation and explicit bounded monitoring fallback. This branch is a release candidate; the stable v2.0.2 tag remains immutable until v2.0.3 release assets are verified.
+
+
+## v2.0.4 candidate — abrupt context recovery
+
+Section 29 enables human-authorized manual chat replacement without an impossible old-session closure ACK; exact Git recovery, Owner STOP, monotonic lease, new ACK/status and scope remain mandatory. See [recovery template](templates/mads/v2/SESSION-RECOVERY.example.md). Not a published release or strong fencing proof.
