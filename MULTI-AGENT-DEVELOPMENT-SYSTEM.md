@@ -18,7 +18,7 @@
 7. **One shared deterministic Git Watchdog per project**, at most one optional Owner ChatGPT condition-watch; no fake live heartbeat or automatic inactive-chat execution.
 8. **Durable bootstrapping and project isolation.** Store role/owner memory, exact source and operator records in verified Git; never share secrets or project-specific authority across projects.
 
-**Read Sections 18–29 as the integrated v2.0 normative update** to the retained reference Sections 1–17. Where older illustrative templates differ, the v2 source/authority gates prevail; project-level exceptions require an explicit approved ADR and may not waive security/release controls.
+**Read Sections 18–30 as the integrated v2.0 normative update** to the retained reference Sections 1–17. Where older illustrative templates differ, the v2 source/authority gates prevail; project-level exceptions require an explicit approved ADR and may not waive security/release controls.
 
 
 **Purpose.** Allow one project owner, code-writing AI specialists and independent validation agents to collaborate through one canonical Git source, without relying on fragile chat history. This standard is portable to GitHub, Gitea and tested self-hosted Git. It does not assume chat spawning, ongoing inactive-chat execution or an already installed Watchdog.
@@ -815,5 +815,32 @@ RECOVERED_SOURCE means exact remote source and obligations reconstructed; ACTIVE
 
 Test: abrupt loss without final ACK; normal graceful transfer; reuse of pending offer; lost/unpushed local work; stale old epoch attempts to write; conflicting late remote commit; ambiguous replacement without policy; intentional parallel/external writer; wrong source HEAD/TREE/lock; lost successor ACK; duplicate successor activation/CAS conflict; expired lease; missing monitoring exception; all inherited task IDs and reserves preserved. A reference matrix or source policy is NOT a tested live Git/ChatGPT recovery drill.
 
-**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.4 candidate.**
 
+
+## 30. Proactive blocker ownership, remediation and next-gate readiness (v2.0.5)
+
+### 30.1 Normative duty and trigger
+
+A BLOCKED, PARTIAL, UNKNOWN, NOT_RUN or WAIT state is an input to remediation, not a satisfactory end state. Owner-00 MUST inspect all such items at every active Owner invocation and REPORT intake, including inherited and deferred obligations and upcoming gates. Specialists MUST actively diagnose and resolve obstacles within existing authorization, and promptly escalate unresolved dependencies. The human directs goals and approves reserved authority; the human must not be required to discover routine engineering prerequisites.
+
+Maintain a Git-backed, evidence-bound blocker ledger with stable IDs; first/last observation and source references; recurrence and age (UNKNOWN if not verified); impact and dependency IDs; category (SOURCE_DEFECT, MISSING_PRODUCT_IMPLEMENTATION, ENV_TOOLCHAIN, RESOURCE, AUTHORITY, DEPENDENCY, EVIDENCE, EXTERNAL); accountable owner, executing role, exact diagnosis or falsifiable diagnostic, next executable remediation, required authority/resources/dependencies, status, closure evidence and independent reviewer. Deduplicate by cause without dropping distinct gates. The ledger must preserve unresolved primary, reserve and deferred obligations across §29 recovery. A recurring blocker without a new resolving action on successive reports MUST be escalated to Owner in the current active review; Owner decides a concrete remedy, reassignment, scope-safe authorization or explicit dependency plan. Status repetition alone is not progress. Do not create busywork or promote tasks to READY when dependencies are unmet.
+
+### 30.2 Anticipatory readiness and authority
+
+Before a current stage completes, preflight the next dependency-safe integration and acceptance stages: exact source/lock, build/runtime/toolchain/dependency closure, actual binaries and capabilities, test data and trust provisioning, execution environment, aggregate resource limits and isolation, permissions/lease expiry, test/negative cases, evidence/recovery and independent review. Record each result as VERIFIED, MISSING or UNKNOWN with evidence. Parallelize independent remediation; maintain a bounded 5–8 READY window where feasible without inventing work or changing the dependency graph silently. No mandatory fixed time or paid resource is implied.
+
+Owner autonomously initiates and removes obstacles within existing authorized scope. If new human approval is required (cost, privileged host change, real secret custody, external operator/provider, live production or destructive action), promptly present the smallest concrete change, rationale, consequences, alternatives and exact approval request. Do not wait for the human to notice it. Source leases never imply host/admin/production permissions; no self-issued role lease, new privilege, bypass of STOP, relaxation of fail-closed trust or invented proof. Keep test-only evidence distinct from independently accepted operational results.
+
+Where roles exist, Delivery owns ledger and dependency/queue reconciliation, Architecture preflights missing implementation and interface contracts, Assurance independently challenges repeated blockers and false-PASS claims. Otherwise assign equivalent duties explicitly to available roles; Owner remains accountable. The validation/execution role runs real gates in an authorized environment; avoid duplicate expensive runs. Watchdogs remain limited to their actual granted monitoring authority; no implication of continuous inactive-chat execution or autonomous session creation.
+
+### 30.3 Mandatory Owner initialization and every milestone
+
+On initial admission and every replacement (including abrupt context exhaustion under §29), Owner MUST read canonical Git instructions, current applicable standards/policy, global and role mail, role status/leases, PR/source pins, latest blocker ledger, current task/dependency ledger and independent evidence. Reconcile stale snapshots and preserve unresolved blockers. Before source work, identify the next integration gates, active remedies, orphaned blockers and needed authority; decide or initiate scope-safe corrective work in the same invocation, with a first dependency-safe task. Missing essential source/authority data remains BLOCKED_RESTORE; safely independent read-only diagnosis can proceed. A new chat must not depend on a previous chat remembering these rules.
+
+Every Owner milestone and role REPORT MUST include (1) newly discovered blockers; (2) remediation actually performed, with evidence and explicit non-actions; (3) unresolved blockers with accountable owner, executable next action and closure proof; (4) preflight of next gates and readiness; (5) actual vs historical/source-only proof level. For Owner, include decisions/dispatches, accepted independent evidence, status of unresolved human approvals, queue/ledger changes and DEVELOPMENT INTEGRITY. Reports with no new blockers state that fact and the scope checked. Commit and verify these records in canonical project Git; a text promise or an unmerged candidate is not installed enforcement. Distinguish policy installed from runtime operation tested.
+
+### 30.4 Acceptance and recovery checks
+
+Review the ledger against the dependency graph and actual evidence; only independently validated closure can remove a hard gate. Exercise negative cases: recurring unresolved blocker without a remedy; hidden missing toolchain/dependency; unavailable execution environment; missing product capability; missing approval vs routine authorized action; exhausted lease; false READY; falsely inherited PASS; isolated test evidence promoted to production; missing restore evidence; abrupt Owner replacement without old handoff; missing or stale blocker ledger; scope escalation attempt. Verify the new Owner bootstrap and role report template require the four remediation sections. Tests of policy text are not evidence of an installed autonomous scheduler, live permissions, actual remediation or successful operational acceptance.
+
+**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.5 candidate.**

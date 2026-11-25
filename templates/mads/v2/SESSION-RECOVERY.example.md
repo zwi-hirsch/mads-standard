@@ -20,3 +20,6 @@ Owner recovery decision records: role ID, old session and epoch, human directive
 | Production request from recovery | deny without separate authorization |
 
 All rows are acceptance expectations, NOT_RUN until a real drill. Cooperative manual fencing is not technical token revocation or G10 PASS.
+
+## Mandatory blocker continuity (§30)
+Recover current Git blocker/dependency ledger, exact unresolved obligations, recurrence, owners, next actions and approval requirements. Check next-gate readiness, escalate repeated or orphaned blockers and initiate scope-safe remediation in the same active invocation. Record missing ledger evidence as UNKNOWN/BLOCKED_RESTORE as applicable. A successor does not require old-chat memory or final handoff; no new authority is implied.

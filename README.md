@@ -2,7 +2,7 @@
 
 **Portable, Git-native multi-agent software development protocol.** The standard is readable without credentials; individual adopting projects remain isolated and retain their own private Git credentials, code, mailboxes and source approval.
 
-Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in full, particularly its normative Sections 18–29.
+Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in full, particularly its normative Sections 18–30.
 
 ## Core model
 
@@ -62,3 +62,7 @@ Section 18 defines no-probation admission with scoped conditional activation and
 ## v2.0.4 candidate — abrupt context recovery
 
 Section 29 enables human-authorized manual chat replacement without an impossible old-session closure ACK; exact Git recovery, Owner STOP, monotonic lease, new ACK/status and scope remain mandatory. See [recovery template](templates/mads/v2/SESSION-RECOVERY.example.md). Not a published release or strong fencing proof.
+
+## v2.0.5 candidate — proactive blocker remediation
+
+Section 30 requires active blocker ownership, anticipatory readiness, timely authority requests and mandatory Owner initialization/milestone reporting. See [blocker ledger template](templates/mads/v2/BLOCKER-LEDGER.example.yaml). This is a source candidate, not a published release; v2.0.3/2.0.4 predecessors remain subject to acceptance.

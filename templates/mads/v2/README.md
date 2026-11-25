@@ -16,3 +16,5 @@ All examples are non-operational placeholders and do not grant source rights or 
 | NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md | Copy-ready Russian project Owner instruction |
 
 Copy templates into **your own** project repository, replace placeholders with actual Git refs, toolchain and owner authorization, test role-source write admission and bundle restore. Retain separate project-private source credentials. Do not copy another project's role sessions or code.
+
+- `BLOCKER-LEDGER.example.yaml`: stable evidence-bound blockers, accountable remediation, next-gate readiness and independent closure under §30.

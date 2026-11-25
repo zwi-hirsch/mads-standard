@@ -26,3 +26,10 @@ status: PARTIAL_OR_DONE_AS_EVIDENCED
 - **Canonical Kanban**: DONE, READY, IN_PROGRESS, BLOCKED, BACKLOG, REMAINING, TOTAL; date and immutable owner-accepted source.
 - **Source acceptance requests**: exact HEAD/TREE and unresolved contract change requests.
 - **Next READY**: 5 or so dependency-safe tasks / explicit blocked remediation with owner and evidence.
+
+## Proactive blocker remediation (§30; required even if no new blockers)
+- Newly discovered blockers: stable ID, evidence, category, critical path impact.
+- Actual remediation: actions executed, exact proof and non-actions.
+- Unresolved: accountable owner/executor, next executable action, dependencies/authority, closure proof/reviewer; escalation if repeated without action.
+- Next-gate preflight: VERIFIED/MISSING/UNKNOWN with evidence; actual vs historical/source-only.
+- Owner only: decisions/dispatches, approvals needed, independent acceptance, ledger/queue change and DEVELOPMENT INTEGRITY.
