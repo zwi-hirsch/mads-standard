@@ -10,7 +10,7 @@
 **Non-negotiable operating rules for all adopting projects:**
 
 1. **One owner, one canonical writable Git authority.** GitHub/Gitea may bridge, but dual independent main writers are forbidden.
-2. **Qualified specialists write real code.** After temporary read-only onboarding, an implementation role must receive a separately ACKed and status-verified `SESSION_START` with source-write permission, a scoped branch and real source tasks.
+2. **Specialists write real code immediately after technical admission.** Prepare branch, path scope and first task at creation; execute the read-only preflight and separately ACKed, status-verified `SESSION_START` as one continuous initialization. No probation, trial assignment, unnecessary wait or extra human activation turn.
 3. **External validation agents check and improve already written code**; they do not silently replace specialists as new-feature developers. Owner retains independent acceptance and merge.
 4. **Every source increment survives crashes.** Targeted gate → source/evidence commit → remote push and readback → independent Git bundle/restore **before** heavy regression.
 5. **Every claim has a proof level.** A draft, patch, model, test fixture, passed old HEAD, or deployed-unverified UI is not a working installed product or production release.
@@ -18,12 +18,12 @@
 7. **One shared deterministic Git Watchdog per project**, at most one optional Owner ChatGPT condition-watch; no fake live heartbeat or automatic inactive-chat execution.
 8. **Durable bootstrapping and project isolation.** Store role/owner memory, exact source and operator records in verified Git; never share secrets or project-specific authority across projects.
 
-**Read Sections 18–26 as the integrated v2.0 normative update** to the retained reference Sections 1–17. Where older illustrative templates differ, the v2 source/authority gates prevail; project-level exceptions require an explicit approved ADR and may not waive security/release controls.
+**Read Sections 18–31 as the integrated v2.0 normative update** to the retained reference Sections 1–17. Where older illustrative templates differ, the v2 source/authority gates prevail; project-level exceptions require an explicit approved ADR and may not waive security/release controls.
 
 
 **Purpose.** Allow one project owner, code-writing AI specialists and independent validation agents to collaborate through one canonical Git source, without relying on fragile chat history. This standard is portable to GitHub, Gitea and tested self-hosted Git. It does not assume chat spawning, ongoing inactive-chat execution or an already installed Watchdog.
 
-**Mandatory responsibility split:** The Owner and qualified domain specialists **author and commit real product code and executable tests**. The external validation/optimization agent independently tests, finds defects, repairs and optimizes **already authored code**; it is not the default new-feature developer or architect. Read-only specialist onboarding is a **temporary security phase**, not permanent coding disqualification. Code writers require an explicit scoped `ORDER event: SESSION_START`, `source_write_authorized: true`, a second ACK and verified activation status. Intentional audit-only roles must be identified as such.
+**Mandatory responsibility split:** The Owner and qualified domain specialists **author and commit real product code and executable tests**. The external validation/optimization agent independently tests, finds defects, repairs and optimizes **already authored code**; it is not the default new-feature developer or architect. Read-only specialist onboarding is a **brief technical preflight in the same initialization transaction**, not a work phase, probation, or permanent coding disqualification. Code writers require an explicit scoped `ORDER event: SESSION_START`, `source_write_authorized: true`, a second ACK and verified activation status. Intentional audit-only roles must be identified as such.
 
 **Acceptance labels.** SPECIFIED = documented; DATA_PATCH_READY = patch/test suggestion without source integration; SOURCE_COMMITTED = real code in verified remote Git branch; SOURCE_TESTED = real executed tests against exact HEAD/TREE/locks; INDEPENDENT_QA_PASS = separately reproduced executable checks; MERGED = owner-approved commit in canonical main; DEPLOYED = observed running product binary/service; LAB_PASS = isolated test evidence only; OPERATIONAL_PILOT = two live source-writing roles, independent QA and recovery demonstrated; BLOCKED/NOT_RUN/UNKNOWN = missing necessary evidence. Production release remains a separate approval domain.
 
@@ -77,7 +77,7 @@ Keep secrets, build output, caches, tokenized transcripts and large embedding in
 
 A role registry must include for every planned role: role_id, display_name, specialization, allowed_paths, owned_contracts, review_dependencies, mailbox_inbound, mailbox_outbound, status_ref, memory_path, work_branch_prefix, state, current_session_id (nullable), lease_epoch (nullable).
 
-Begin in NOT_STARTED. Merely registering ten specialists does not create ten chats or consume background execution. If a selected specialist is expected to develop code, READ_ONLY onboarding **must** lead to a second, source-writing SESSION_START/ACK/status admission, not endless DATA_ONLY work; otherwise declare BLOCKED_ADMISSION with a concrete remediation. Assign exclusive primary path ownership. Shared API, database, cryptographic and wire contracts require an owner-approved change request and versioned integration plan; avoid concurrent rewrites of the same file.
+Begin in NOT_STARTED. Merely registering ten specialists does not create ten chats or consume background execution. If a selected specialist is expected to develop code, READ_ONLY preflight **must immediately** lead to a source-writing SESSION_START/ACK/status admission in the same initialization transaction, not endless DATA_ONLY work; otherwise declare BLOCKED_ADMISSION with a concrete remediation. Assign exclusive primary path ownership. Shared API, database, cryptographic and wire contracts require an owner-approved change request and versioned integration plan; avoid concurrent rewrites of the same file.
 
 Suggested first pilot: ONE CI specialist with a small reproducible source gate and ONE UI/Dashboard specialist with a disjoint read-only surface. Avoid production-root, real-device and external WAN dependencies until admission and permissions are tested.
 
@@ -371,16 +371,16 @@ Use at most **one ChatGPT Owner-level condition-watch** per project where the us
 **Level 2 design only:** `docs/operations/OWNER-AUTONOMOUS-EXECUTION-LEVEL2-DESIGN.md` describes a possible isolated runner using OpenAI Agents SDK / Responses API plus policy-enforcing GitHub write broker and explicit source-only owner grants. It is NOT_DEPLOYED, does not alter ChatGPT automation, does not authorize OWNER ORDER or agent dispatch, and never inherits operator production authority. The same admission/policy applies in other projects after they adapt it and independently accept their own scoped execution runtime.
 
 
-## 18. Mandatory 12-step onboarding: from read-only to actual product code (v2.0)
+## 18. Immediate source admission and 12-step engineering lifecycle (v2.0.3)
 
-This chapter integrates the tested a documented 2026 source-admission pilot specialist source-admission lesson into a **project-neutral rule**. The read-only security handshake alone cannot be called development activation. A coding specialist is a software engineer in its specialty. For an intentional audit-only specialist, use an explicit AUDIT_ONLY role and no source lease.
+**Normative immediate-admission policy (v2.0.3; supersedes conflicting timing and monitoring prerequisites in Sections 1–17, 25–26 and older templates).** A new implementation role is a developer from its creation, not a trainee. Admission is a technical session boundary, not a probation period, qualification project, elapsed-time requirement or separate read-only milestone. Steps 1–6 form one continuous, bounded initialization transaction; steps 7–12 are normal engineering, not preconditions to writing the first source file. Preprovision the first real task and scoped branch before launching the role. Once the exact prerequisites pass, the Owner MUST issue/confirm the coding lease immediately and the specialist MUST begin the first READY source task in the same invocation where possible, without another human prompt. If a genuine blocker exists, identify the exact failed predicate and remediation; never silently substitute repeated DATA_ONLY work. The read-only security handshake alone cannot be called development activation. A coding specialist is a software engineer in its specialty. For an intentional audit-only specialist, use an explicit AUDIT_ONLY role and no source lease.
 
 1. **Declare role and product deliverable.** Owner identifies permanent `role_id`, implementation expertise, code/contract ownership, target branch, actual executable acceptance, negative tests, toolchain, resource limitations, source/production boundary and PR destination. The intended deliverable must say which real source files and application behavior are expected, not merely a report.
 2. **Reconcile canonical Git first.** Inspect live main `AGENTS.md`, the current project MADS version, main HEAD/TREE, pinned lock/toolchain inputs, STOP/security policy, role registry and role memory, outstanding coordination messages, PRs and prior tests. No reliance on historical chat summaries or arbitrary memory versions to grant authority.
 3. **Provision role isolation.** Create distinct inbound/outbound append-only coordination refs, own status ref, role hot memory, and dedicated source branch with exact pinned base. Verify effective write permission, broker/path protection (or explicitly disclose COOPERATIVE_ONLY). Different role writers must never share the same mutable source branch.
-4. **Read-only handshake.** Issue immutable `ORDER event: WATCHDOG_ATTACH_READ_ONLY`, register role with shared deterministic Git Watchdog, verify an actual provider scan and get the first Git ACK. If a mandatory watchdog or repository capability cannot be installed, mark `BLOCKED_ADMISSION` with remediation, rather than inventing a PASS.
-5. **Issue a separate coding lease.** For a development role, Owner publishes immutable `ORDER event: SESSION_START` with unique `session_id`, monotonically increasing `lease_epoch`, exact base/main/work HEAD/TREE/lock, allowed/forbidden source paths, finite 5 PRIMARY plus safe RESERVE queue (project configurable), expected PR, evidence, expiration and `source_write_authorized: true`. Source permission is **not** production or external host permission.
-6. **Second ACK and status activation.** Specialist checks STOP, lease collision, source drift, authority, own refs and queue; ACKs the exact SESSION_START in its outbound ref and rereads the pushed Git ACK. It updates `status/<role>` with session/epoch, branch and source. Owner independently verifies ACK + status before declaring `SOURCE_SESSION_ACTIVE`; until then it is `LEASE_ISSUED_ACK_PENDING`.
+4. **Read-only preflight, immediately followed by source activation.** Provision and enroll the role in the shared deterministic Git Watchdog and issue immutable `WATCHDOG_ATTACH_READ_ONLY`; the first Git ACK verifies role, mailboxes, source pins, STOP and session context. Preflight must not require a separate work run, trial assignment or waiting period. Real scanner proof is normally required; if the scanner is unavailable, record `WATCHDOG_BLOCKED` and require an explicit Owner-scoped, time-bounded manual monitoring exception with verified mailbox/status readback before each write, exact STOP and lease checks and a remediation owner. This exception cannot replace source fencing, grant production rights or satisfy G9. If neither real scanner nor explicitly authorized manual monitoring exists, or any source/identity/STOP/isolation prerequisite is missing, remain `BLOCKED_ADMISSION`.
+5. **Immediately issue or confirm a preprovisioned conditional coding lease.** For a development role, without waiting for a read-only assignment or additional human prompt, Owner publishes immutable `ORDER event: SESSION_START` with unique `session_id`, monotonically increasing `lease_epoch`, exact base/main/work HEAD/TREE/lock, allowed/forbidden source paths, finite 5 PRIMARY plus safe RESERVE queue (project configurable), expected PR, evidence, expiration and `source_write_authorized: true`. Source permission is **not** production or external host permission.
+6. **Second ACK and immediate status activation.** Specialist checks STOP, lease collision, source drift, authority, own refs and queue; ACKs the exact SESSION_START in its outbound ref and rereads the pushed Git ACK. It atomically updates only its authorized status ref with session/epoch, branch and source and rereads it. The Owner may preauthorize activation by explicit deterministic conditions in the SESSION_START; once all are verified, the specialist starts code without another conversational approval. The Owner independently reviews the activation evidence and may revoke on discrepancy. Until verified activation the role is `LEASE_ISSUED_ACK_PENDING`, never an active writer. A manual-monitoring exception is not a waiver of source permission, prior-session fencing (including the human-authorized crash route in Section 29), path scope or independent QA.
 7. **Implement, not just propose.** Qualified specialist writes actual domain source files and executable tests on its branch. Source-only patch files, diagrams, mocked counters, unexecuted test scaffolds and reports are interim DATA. Missing compiler/vendor yields exact `BLOCKED_ENV`/`NOT_RUN` while dependency-safe source work proceeds; it is never a permanent excuse to deny a coding role its source lease.
 8. **Checkpoint every meaningful increment.** Targeted tests; source/evidence Git commit; push and independently read remote SHA/TREE/path scope; **immediately** save a checksum-pinned source-bound bundle and independently restore it, before lengthy full tests. Status includes `NEXT_ACTION`, tested source SHA, remaining tasks, last good checkpoint and bundle location.
 9. **Actual PR as handoff.** Specialist opens a draft PR from its source branch, with changed-path manifest, exact base/head/tree/lock, tests and negative cases, acceptance gaps, AI Operations impacts, source bundle and dependency/contract CR. A mailbox-only patch does not complete product implementation.
@@ -396,7 +396,7 @@ This chapter integrates the tested a documented 2026 source-admission pilot spec
 NOT_STARTED
  -> ROLE_PROVISIONED
  -> READ_ONLY_ONBOARDING
- -> WATCHDOG_AND_READ_ONLY_ACK_VERIFIED
+ -> PREFLIGHT_ACK_AND_MONITORING_VERIFIED
  -> SESSION_START_ISSUED_ACK_PENDING
  -> SOURCE_SESSION_ACTIVE
  -> SOURCE_COMMITTED
@@ -408,7 +408,7 @@ NOT_STARTED
  -> DEPLOYED [requires separate operator gate]
 ~~~
 
-Each transition has actual Git source/verification evidence. These are *not* synonyms for a product task's DONE state; a task's own acceptance contract determines whether it is complete. A STOP, expired epoch, missing branch, untrusted status, change of contracts or failed test must interrupt only the affected scope and can result in BLOCKED_ADMISSION, BLOCKED_ENV, BLOCKED_SOURCE or CHANGES_REQUIRED.
+The first five transitions are one continuous admission transaction, not five separate user interactions. A preissued conditional SESSION_START may be present before the first ACK but cannot activate until the preflight conditions, distinct ACKs and verified status are satisfied. Each transition has actual Git source/verification evidence. These are *not* synonyms for a product task's DONE state; a task's own acceptance contract determines whether it is complete. A STOP, expired epoch, missing branch, untrusted status, change of contracts or failed test must interrupt only the affected scope and can result in BLOCKED_ADMISSION, BLOCKED_ENV, BLOCKED_SOURCE or CHANGES_REQUIRED.
 
 ### Complete example: second (source) lease
 
@@ -634,8 +634,8 @@ A *new* project cannot mark MADS v2.0 operational merely because this file was c
 | Gate | Required positive proof | Required negative/fail-closed proof |
 |---|---|---|
 | G0 canonical Git | Canonical main, role history, branch provenance and lock verified | Missing ref/drift prevents mutation |
-| G1 temporary onboarding | Real first mailbox ACK + registry-driven Watchdog scan | READ_ONLY ACK does not permit source editing |
-| G2 coding activation | Separate source SESSION_START + second ACK + updated role status | UnACKed/expired epoch cannot write source |
+| G1 technical preflight | Real first mailbox ACK + registry-driven Watchdog scan or explicit bounded manual exception per Section 18 | READ_ONLY ACK does not permit source editing; manual exception does not pass G9 |
+| G2 immediate coding activation | Separate source SESSION_START + second ACK + verified role status in same initialization | UnACKed/expired epoch cannot write source; no probation or extra human turn |
 | G3 isolated source work | Two specialists commit real disjoint files in own branches | Cross-role path/shared-branch write rejected or labeled COOPERATIVE_ONLY |
 | G4 recovery | Remote code SHA/TREE, checksum bundle, independent fresh restore | Unpushed unique work labeled MISSING_SOURCE |
 | G5 deterministic READY | Executable scheduler selects a dependency-safe source task; blocked tasks deferred | Cycles/conflicting role ownership/stale source do not become READY |
@@ -698,7 +698,11 @@ roles:
 onboarding:
   temporary_read_only: true
   first_ack_required: true
-  watchdog_real_run_required: true
+  watchdog_real_run_required: true # or explicit time-bounded manual exception per Section 18
+  immediate_source_admission: true
+  probation_required: false
+  preprovision_first_source_task: true
+  additional_human_activation_turn_required: false
   separate_source_session_start_required: true
   second_ack_and_status_required: true
 watchdog:
@@ -735,7 +739,7 @@ admission:
 
 **Stage P1 — owner architecture and registry.** Install AGENTS.md pointing to MADS v2.0; define one canonical Git authority, role registry, memory index, source/code ownership, Kanban MD+HTML and versioned ADR. Install deterministic message/memory/schema validators. Register planned roles as NOT_STARTED only.
 
-**Stage P2 — one specialist end-to-end.** Provision three separate refs, shared Watchdog onboarding and first read-only ACK, then explicit source SESSION_START and second ACK/status. Prove one real source commit/targeted gate/bundle restore/draft PR and deny cross-role pushes.
+**Stage P2 — one specialist end-to-end.** Provision three separate refs, scoped work branch and first source task. In one initialization transaction perform shared Watchdog onboarding (or Section 18 explicit manual fallback), first ACK, explicit source SESSION_START and second ACK/status; start writing immediately when admitted. Prove one real source commit/targeted gate/bundle restore/draft PR and deny cross-role pushes.
 
 **Stage P3 — independent validator.** Provide exact accepted source handoff to external QA/optimizer. Independently compile and test a real PR source SHA, reproduce a negative failure, and return an accepted bugfix/optimization or a CR to the original specialist. No brand-new feature coding by agent.
 
@@ -773,5 +777,94 @@ admission:
 
 **Upgrade:** apply in an adopting project via its own reviewed PR, record the pinned upstream release/tag/digest, retain project-specific overrides under explicit ADR, and independently test both a valid Git-patch handoff and a rejected chat-only/archive-only handoff. Previously released v2.0.1 artifacts remain immutable. v2.0.2 release adoption requires its own verified Git tag, ZIP, and SHA-256 sidecar.
 
-**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.2.**
+## 28. Mandatory role continuity on agent/session replacement (v2.0.3)
 
+A chat/session number is not an engineering role identifier. Replacing a runtime MUST preserve the existing canonical role ID, mailbox, backlog, scope and obligations. A genuinely new role or explicit role succession requires a separate Owner decision and documented mapping; neither is inferred from a chat title.
+
+Before successor source writes, Owner and successor MUST:
+1. Restore the previous role and **entire** ordered queue, including primary, reserve, blocked, deferred, pending-review and dependency tasks, not merely the latest ORDER. Record every task's immutable ID, status, dependency, branch/HEAD/TREE, evidence, open PR and next action.
+2. Reconcile DONE only against accepted evidence; classify partial, untested, failed and missing artifacts explicitly. Preserve all historical source refs, logs, ACKs and unresolved commitments.
+3. Fence the previous source-write lease with immutable Owner STOP/transfer, monotonic epoch and verified status. For manually replaced, context-exhausted chats, apply Section 29: human-authorized cooperative replacement does not require an impossible old runtime ACK or final REPORT. For potentially concurrent/external writers require verified cessation or independently enforced revocation. If required fencing cannot be established, block source writes; read-only recovery may proceed.
+4. Transfer source, test evidence, recovery artifacts and the complete obligation ledger using Section 27 Git-only transport. Verify exact remote pins, scope, custody, and independently recoverable bytes; keep missing proof as BLOCKED rather than declaring tasks complete.
+5. ACK the successor session and verify the current lease/status against the same role (or explicit successor mapping), then immediately continue the first dependency-safe READY source task in the same invocation. No extra probation, repeated onboarding or routine human prompt; do not bypass safety, STOP, independent QA or external authorization.
+
+Acceptance: a changed chat number alone creates zero new roles or leases; all open task IDs remain assigned exactly once; old write authority is fenced; source and evidence remain reachable; blocked tasks remain visible; successor begins the next safe task. Test lost ACK, incomplete ledger, stale epoch, competing writer, missing evidence, and explicit role renaming. A source policy is not proof that runtime fencing/recovery works.
+
+## 29. Unplanned context exhaustion and immediate session recovery (v2.0.4)
+
+**Normative precedence:** this section supersedes any earlier requirement for an old chat's final REPORT, closure ACK, handoff or independently enforced credential revocation as a universal prerequisite to a human-authorized replacement of a manual chat. A lost context window is a routine crash, not misconduct or a new role. Do not wait for messages a dead runtime cannot send.
+
+### 29.1 Trigger and authority
+
+- A human explicitly initializes a **replacement** of the same canonical role, or the project has an explicit human-approved standing convention that a newly opened manual chat for an existing role means replacement after context exhaustion unless the human expressly says otherwise. Record the applicable human directive or standing policy reference in Git. The successor need not ask the human to repeat it. A new role, intentional parallel worker, automation, external process or ambiguous launch without such authority is NOT covered by this route.
+- Silence, stale heartbeat, chat numbering, elapsed time, an agent's own assertion or an ordinary continuation prompt are not proof of crash or authorization to replace a writer. The standing convention applies to a human-opened replacement initialization, not repeated messages within a chat. Do not create autonomous sessions.
+- Classify the old manual session as CONTEXT_EXHAUSTED_UNGRACEFUL (human replacement directive; old final handoff unavailable). This is a cooperative operational declaration, NOT technical proof of process termination, Git credential revocation or strong isolation. If actual evidence of concurrent writes, an active external process or conflicting human instructions exists, freeze source admission and resolve the conflict; require cessation or enforced revocation for independently running writers.
+
+### 29.2 Owner-controlled recovery transaction
+
+1. Read canonical Git instructions, STOP/SECURITY and all global/personal mail, registry, current status, work branch, open PRs, complete task ledger and evidence. Inspect exact remote HEAD/TREE/lock. The new chat may immediately do read-only recovery and prepare safe work; it may not impersonate the old session.
+2. Owner records an immutable SESSION_RECOVERY/STOP decision referencing the human authorization, old role/session/epoch/status tip, remote source tip, last ACK/REPORT if any, and reason. CAS-revoke the old source permission and verify readback. No ACK from an unavailable old chat is required. An already pending valid replacement offer may be reused, not duplicated.
+3. Preserve the old source branch, PRs and evidence. Reconcile remote commits after the last REPORT; verified committed changes are recovered, not silently discarded. Unknown/unpushed work is MISSING_SOURCE or UNPUBLISHED_UNKNOWN, never fabricated, never treated as DONE; schedule reconstruction if needed. Transfer the complete primary/reserve/blocked/deferred/review/dependency ledger by Git. Missing historical proof blocks only its dependent tasks unless it affects source identity, fencing, scope or safe admission.
+4. Owner issues or confirms a conditional SESSION_START/SESSION_TRANSFER with a fresh unique session_id, strictly increasing epoch, isolated successor work branch at exact verified remote source, unchanged or explicitly authorized scope, expiry and monitoring. Existing preissued offers must be checked against latest source and authority. A trusted Owner may preauthorize deterministic recovery activation; no specialist self-issues or expands a lease. Use CAS on the canonical role status/registry so only one epoch is current; concurrent offers or changed refs require reconciliation, not force-push.
+5. Successor independently reads back old revoke, current offer and exact pins, ACKs the new order, activates only its authorized status by CAS/readback, checks STOP again, and starts the first dependency-safe READY source task immediately in the same invocation. Do not demand another human confirmation or old-session closure report after the standing or explicit human directive and all remaining gates pass. Before each write check current epoch, STOP, source ref and scope. If the old session ever becomes responsive it must stop and report any late changes; do not integrate them automatically.
+6. Preserve ordinary monitoring, independent QA/recovery, contract ownership, final merge and separate production/host/secret authority. A cooperative manual recovery does not satisfy strong fencing or G10 runtime acceptance. Protected branches/write broker or revoked credentials are required for a claim of enforced fencing; never grant external execution or production by recovery.
+
+### 29.3 Recovery outcomes and required tests
+
+RECOVERED_SOURCE means exact remote source and obligations reconstructed; ACTIVE requires the verified successor lease. BLOCKED_RESTORE means essential Git identity, ledger dependencies or source evidence missing; BLOCKED_FENCING means competing writer/STOP/epoch conflict or a required enforced fence missing. Missing old final REPORT alone is not BLOCKED. Keep independent safe READY work moving.
+
+Test: abrupt loss without final ACK; normal graceful transfer; reuse of pending offer; lost/unpushed local work; stale old epoch attempts to write; conflicting late remote commit; ambiguous replacement without policy; intentional parallel/external writer; wrong source HEAD/TREE/lock; lost successor ACK; duplicate successor activation/CAS conflict; expired lease; missing monitoring exception; all inherited task IDs and reserves preserved. A reference matrix or source policy is NOT a tested live Git/ChatGPT recovery drill.
+
+
+
+## 30. Proactive blocker ownership, remediation and next-gate readiness (v2.0.5)
+
+### 30.1 Normative duty and trigger
+
+A BLOCKED, PARTIAL, UNKNOWN, NOT_RUN or WAIT state is an input to remediation, not a satisfactory end state. Owner-00 MUST inspect all such items at every active Owner invocation and REPORT intake, including inherited and deferred obligations and upcoming gates. Specialists MUST actively diagnose and resolve obstacles within existing authorization, and promptly escalate unresolved dependencies. The human directs goals and approves reserved authority; the human must not be required to discover routine engineering prerequisites.
+
+Maintain a Git-backed, evidence-bound blocker ledger with stable IDs; first/last observation and source references; recurrence and age (UNKNOWN if not verified); impact and dependency IDs; category (SOURCE_DEFECT, MISSING_PRODUCT_IMPLEMENTATION, ENV_TOOLCHAIN, RESOURCE, AUTHORITY, DEPENDENCY, EVIDENCE, EXTERNAL); accountable owner, executing role, exact diagnosis or falsifiable diagnostic, next executable remediation, required authority/resources/dependencies, status, closure evidence and independent reviewer. Deduplicate by cause without dropping distinct gates. The ledger must preserve unresolved primary, reserve and deferred obligations across §29 recovery. A recurring blocker without a new resolving action on successive reports MUST be escalated to Owner in the current active review; Owner decides a concrete remedy, reassignment, scope-safe authorization or explicit dependency plan. Status repetition alone is not progress. Do not create busywork or promote tasks to READY when dependencies are unmet.
+
+### 30.2 Anticipatory readiness and authority
+
+Before a current stage completes, preflight the next dependency-safe integration and acceptance stages: exact source/lock, build/runtime/toolchain/dependency closure, actual binaries and capabilities, test data and trust provisioning, execution environment, aggregate resource limits and isolation, permissions/lease expiry, test/negative cases, evidence/recovery and independent review. Record each result as VERIFIED, MISSING or UNKNOWN with evidence. Parallelize independent remediation; maintain a bounded 5–8 READY window where feasible without inventing work or changing the dependency graph silently. No mandatory fixed time or paid resource is implied.
+
+Owner autonomously initiates and removes obstacles within existing authorized scope. If new human approval is required (cost, privileged host change, real secret custody, external operator/provider, live production or destructive action), promptly present the smallest concrete change, rationale, consequences, alternatives and exact approval request. Do not wait for the human to notice it. Source leases never imply host/admin/production permissions; no self-issued role lease, new privilege, bypass of STOP, relaxation of fail-closed trust or invented proof. Keep test-only evidence distinct from independently accepted operational results.
+
+Where roles exist, Delivery owns ledger and dependency/queue reconciliation, Architecture preflights missing implementation and interface contracts, Assurance independently challenges repeated blockers and false-PASS claims. Otherwise assign equivalent duties explicitly to available roles; Owner remains accountable. The validation/execution role runs real gates in an authorized environment; avoid duplicate expensive runs. Watchdogs remain limited to their actual granted monitoring authority; no implication of continuous inactive-chat execution or autonomous session creation.
+
+### 30.3 Mandatory Owner initialization and every milestone
+
+On initial admission and every replacement (including abrupt context exhaustion under §29), Owner MUST read canonical Git instructions, current applicable standards/policy, global and role mail, role status/leases, PR/source pins, latest blocker ledger, current task/dependency ledger and independent evidence. Reconcile stale snapshots and preserve unresolved blockers. Before source work, identify the next integration gates, active remedies, orphaned blockers and needed authority; decide or initiate scope-safe corrective work in the same invocation, with a first dependency-safe task. Missing essential source/authority data remains BLOCKED_RESTORE; safely independent read-only diagnosis can proceed. A new chat must not depend on a previous chat remembering these rules.
+
+Every Owner milestone and role REPORT MUST include (1) newly discovered blockers; (2) remediation actually performed, with evidence and explicit non-actions; (3) unresolved blockers with accountable owner, executable next action and closure proof; (4) preflight of next gates and readiness; (5) actual vs historical/source-only proof level. For Owner, include decisions/dispatches, accepted independent evidence, status of unresolved human approvals, queue/ledger changes and DEVELOPMENT INTEGRITY. Reports with no new blockers state that fact and the scope checked. Commit and verify these records in canonical project Git; a text promise or an unmerged candidate is not installed enforcement. Distinguish policy installed from runtime operation tested.
+
+### 30.4 Acceptance and recovery checks
+
+Review the ledger against the dependency graph and actual evidence; only independently validated closure can remove a hard gate. Exercise negative cases: recurring unresolved blocker without a remedy; hidden missing toolchain/dependency; unavailable execution environment; missing product capability; missing approval vs routine authorized action; exhausted lease; false READY; falsely inherited PASS; isolated test evidence promoted to production; missing restore evidence; abrupt Owner replacement without old handoff; missing or stale blocker ledger; scope escalation attempt. Verify the new Owner bootstrap and role report template require the four remediation sections. Tests of policy text are not evidence of an installed autonomous scheduler, live permissions, actual remediation or successful operational acceptance.
+
+
+
+## 31. Interrupted REPORT publication and transaction recovery (v2.0.6)
+
+### 31.1 Durable publication journal
+
+Publication MUST be resumable without the old chat, not a single final message. Assign an immutable transaction_id before work begins (role, session, lease epoch, order, task/milestone ID), reserve a unique report ID in Git, and record intended artifact paths/refs and exact source/lock pins. Persist an append-only checkpoint after each meaningful source/evidence increment and before starting expensive work. Record source commit/TREE/lock, actual test command/RC/log hashes or NOT_RUN, expected evidence manifest, readback state, inbound policy/order pins, pending tasks/reserves and next action. Do not put secrets or unsupported assertions in Git. Preserve source and raw logs independently of final report availability.
+
+Stages are PREPARED, SOURCE_PUBLISHED, EVIDENCE_PARTIAL, EVIDENCE_VERIFIED, REPORT_PUBLISHED, STATUS_RECONCILED, OWNER_ACCEPTED. They describe observed facts, not automatic permission or mandatory sequence of all tasks; source/evidence can be published in increments. Only remote readback establishes a published stage. An intent, local file or returned ambiguous API response does not establish success. A final REPORT must refer to exact immutable evidence; incomplete evidence is explicitly PARTIAL/UNKNOWN, never PASS. Owner acceptance is separate. Each transition records previous checkpoint and expected prior state; never overwrite sent mail or rewrite history.
+
+### 31.2 Reconcile after interruption or mail drift
+
+On any failed/ambiguous write, incoming mail change, process crash or context exhaustion, stop new source edits until rechecking STOP/security, current authority/expiry, source and mailbox refs. New mail alone is not cancellation of authorized earlier work; distinguish additive orders and documentation-only drift from conflicting STOP, revoked/expired scope or changed source pins. Preserve completed artifacts and assess the new instructions before further writes. Read-only recovery is always allowed within access scope; publication only through an authorized recovery/outbound channel, never an expired source lease. Do not demand a new human turn for an already authorized safe continuation. If a STOP prevents writes, Owner records the recovery in its own permitted channel.
+
+A human-authorized successor under §29, or the current still-authorized session, reconciles the transaction using current remote source ancestry, PR, checkpoint journal, exact artifact manifests/raw hashes, immutable report paths and status. Do not impersonate an old session or reconstruct missing proof from narrative. Recover known source commits even if the status still points to an older commit; verify all paths/ancestry and preserve differences. If a checkpoint/REPORT write timed out, check the expected remote path and bytes: identical content is already published (idempotent); absent content may be published once under valid authority; differing content is a conflict, preserve both and escalate. Never replace an immutable report. If the report ID was reserved but never published, publish a new unique RECOVERY_REPORT referencing the reserved ID, original role/session/order and exact recovered evidence; if an existing report is incomplete use a new additive CORRECTION/RECOVERY_REPORT referencing its commit and blob. Do not backdate or claim old-session authorship. If a fully valid REPORT exists but status is stale, reconcile status by authorized expected-old CAS/readback; do not send duplicate report or rerun passing tests on the same exact scope. If status claims a missing report, record mismatch and reconstruct only from verified evidence; no false acceptance.
+
+Missing/unpublished local source, raw logs, test RC or proof are UNKNOWN/MISSING_SOURCE/MISSING_EVIDENCE; schedule minimal reconstruction or rerun only the missing dependent gates at the correct pins. Preserve separate published source/test results and inherited primary/reserve/deferred obligations. Reconcile current new orders and STOP/leases before new development; no self-issued/extended authority, no production/host grant, no implicit automatic chat execution. For external/concurrent writers §29 fencing still applies.
+
+### 31.3 Owner recovery and required evidence
+
+Owner MUST identify orphaned source/evidence/checkpoints when receiving reports, including current source HEAD beyond last reported HEAD, missing report refs, status/report mismatch and pending transactions. Open a recovery assignment proactively; the successor must finish the recoverable publication before claiming a new task as done, but unrelated authorized safe work need not wait for missing evidence. Owner records exact recovered/not recovered sets, new report ID/commit/blob, current status and accepted scope; no double counting, no full regression by default. Record this in blocker ledger (§30) until reconciled. If no journal existed, reconstruct a clearly labeled recovery inventory from remote facts and adopt the journal for subsequent tasks. Keep the original record unchanged.
+
+Required hostile cases: crash before first push, after source push, after partial evidence, after verified evidence before REPORT, after REPORT before status CAS, timeout with identical remote report, conflicting same ID, stale status pin, new additive mail vs STOP/revocation, expired lease, missing raw RC/log, competing writer, old report partially published, and duplicate recovery attempt. Check no proof is promoted, no work lost/double counted, no stale writes, and no authority escalation. Policy/template checks alone are not an executed live recovery drill.
+
+**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.6 candidate.**

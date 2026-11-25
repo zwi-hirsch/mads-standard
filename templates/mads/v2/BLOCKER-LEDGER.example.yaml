@@ -1,0 +1,29 @@
+schema: mads.blocker-ledger.v1
+source_ref: "<exact Git commit>"
+blockers:
+  - id: BLOCKER-001
+    first_observed_utc: UNKNOWN
+    last_observed_utc: UNKNOWN
+    evidence_refs: []
+    recurrence_count: UNKNOWN
+    age: UNKNOWN
+    category: ENV_TOOLCHAIN
+    affected_task_ids: []
+    critical_path_impact: UNKNOWN
+    accountable_owner: owner-00
+    executor: "<authorized role>"
+    diagnosis: "<observed cause or falsifiable diagnostic>"
+    next_action: "<executable remediation>"
+    prerequisites: []
+    authority_required: "<existing grant or minimal new approval>"
+    status: BLOCKED
+    last_remediation_evidence: []
+    closure_proof_required: "<exact positive and negative evidence>"
+    independent_reviewer: "<role>"
+    closure_evidence: []
+next_gate_preflight:
+  - gate_id: "<next integration gate>"
+    status: UNKNOWN
+    evidence_refs: []
+    owner: "<role>"
+    next_action: "<check or resolve>"

@@ -23,8 +23,8 @@ No old workspace, tickets, role memory, Git mailbox history, customer data, priv
 ## Release
 
 1. Review the license, add a correct `LICENSE` file and set `publication_status: RELEASED` in `MADS-VERSION.yaml`.
-2. Run `python3 scripts/build_release.py --out dist` in a clean checkout of the **public** repo. The deterministic script checks required files, 27 sections, basic secret patterns, UTF-8 and the LICENSE/status gate. It writes `mads-standard-v2.0.2.zip`, the SHA256 sidecar and an embedded per-file manifest; confirm clean unzip/manifest.
-3. Review a PR and merge approved standard content. Tag the exact commit `v2.0.2`; run the verified `.github/workflows/release-v2.yml` automated publisher (or GitHub Releases with exactly the same generated ZIP and `.sha256`) and verify the release/tag/assets.
+2. Run `python3 scripts/build_release.py --out dist` in a clean checkout of the **public** repo. The deterministic script checks required files, 31 sections, basic secret patterns, UTF-8 and the LICENSE/status gate. It writes `mads-standard-v2.0.6.zip`, the SHA256 sidecar and an embedded per-file manifest; confirm clean unzip/manifest.
+3. Review a PR and merge approved standard content. Tag the exact commit `v2.0.6`; run the verified `.github/workflows/release-v2.yml` automated publisher (or GitHub Releases with exactly the same generated ZIP and `.sha256`) and verify the release/tag/assets.
 4. Re-download as anonymous/public reader, verify SHA256 and that every file can be read **without signing into a private project**.
 5. For each adopting project, copy the released files into its own repo, record project-local `docs/mads/MADS-VERSION-LOCK.yaml` with tag/SHA256/adoption commit, and run MADS G0–G13. Never update from mutable upstream `main` automatically.
 

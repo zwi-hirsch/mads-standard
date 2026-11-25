@@ -16,6 +16,6 @@ status: OPEN
 ---
 # Read-only first-contact admission — example ONLY
 
-Read canonical main/AGENTS.md, MADS v2, both own mailbox refs, role memory, role status ref, STOP/security decisions and exact source baseline. Independently verify all three refs and a real shared Git Watchdog scan. Reply with immutable ACK to your OWN outbound mailbox citing this order ID and observed inbound Git SHA. Verify remote ACK readback.
+Read canonical main/AGENTS.md, MADS v2, both own mailbox refs, role memory, role status ref, STOP/security decisions and exact source baseline. Independently verify all three refs and a real shared Git Watchdog scan or explicit bounded Owner manual-monitoring exception (Section 18). Reply with immutable ACK to your OWN outbound mailbox citing this order ID and observed inbound Git SHA. Verify remote ACK readback.
 
-**This is deliberately NOT a coding lease.** Role state remains ONBOARDING_READ_ONLY until Owner separately issues a scoped source SESSION_START and verifies the second role ACK + status. If a developer cannot proceed due to permissions, report BLOCKED_ADMISSION rather than undertaking endless DATA_ONLY work.
+**This is deliberately NOT a coding lease.** Role state remains ONBOARDING_READ_ONLY until a scoped conditional Owner SESSION_START is ACKed and status activation verified. Preprovision the branch and first source task; perform both steps in one initialization. Immediately start coding when conditions pass, without waiting for another human prompt. If a developer cannot proceed due to permissions, report BLOCKED_ADMISSION rather than undertaking endless DATA_ONLY work.

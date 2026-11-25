@@ -35,8 +35,12 @@ roles:
     lease_epoch: null
 onboarding:
   temporary_read_only: true
+  immediate_source_admission: true
+  probation_required: false
+  preprovision_first_source_task: true
+  additional_human_activation_turn_required: false
   first_ack_required: true
-  watchdog_real_run_required: true
+  watchdog_real_run_required: true # or explicitly scoped bounded manual exception; G9 remains unpassed
   separate_source_session_start_required: true
   second_ack_and_status_required: true
 watchdog:
@@ -50,6 +54,10 @@ scheduler:
   reserve_tasks_per_queue: 7
   source_ready_evaluator_tested: false
 recovery:
+  manual_replacement_convention: EXPLICIT_HUMAN_REPLACEMENT_REQUIRED # standing convention requires explicit human approval
+  abrupt_context_recovery: true
+  old_final_ack_required_for_authorized_manual_crash: false
+  fencing: COOPERATIVE_ONLY_UNLESS_ENFORCED_AND_TESTED
   push_and_verify_after_each_source_task: true
   independent_verified_bundle: true
   full_bundle_if_base_missing: true

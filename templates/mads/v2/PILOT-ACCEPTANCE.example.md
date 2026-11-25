@@ -5,8 +5,8 @@
 | Gate | State | Exact SHA/run/log | Owner remediation |
 |---|---|---|---|
 | G0 canonical source and lock | NOT_RUN | — | — |
-| G1 first read-only ACK + Watchdog | NOT_RUN | — | — |
-| G2 second source SESSION_START ACK + status | NOT_RUN | — | — |
+| G1 preflight ACK + real Watchdog or bounded manual exception | NOT_RUN | — | — |
+| G2 immediate source SESSION_START ACK + status, same initialization | NOT_RUN | — | — |
 | G3 two writers isolated paths | NOT_RUN | — | — |
 | G4 remote source + independent bundle restore | NOT_RUN | — | — |
 | G5 executable READY scheduler | NOT_RUN | — | — |
@@ -20,3 +20,7 @@
 | G13 operator/AI-Ops and Kanban parity | NOT_RUN | — | — |
 
 **Pilot verdict:** MADS_SOURCE_READY / MADS_PILOT_BLOCKED / MADS_OPS_PILOT_PASS, with explicit acceptance authority and source SHA. Documentation alone cannot satisfy a pilot gate.
+
+Verify no probation, no extra human approval turn after all conditions pass; deny unACKed/stale/conflicting lease. A manual exception is not G9 PASS.
+
+G10 includes the §29 abrupt-context recovery drill: no old final ACK, inherited obligations and remote source, new epoch/ACK/CAS, stale/concurrent writer rejection. Record cooperative vs enforced fencing separately; an example matrix is not a live drill.

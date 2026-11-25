@@ -1,0 +1,27 @@
+schema: mads.report-publication.v1
+transaction_id: "<unique role/session/epoch/order/task>"
+reserved_report_id: "<unique immutable ID>"
+role_id: "<canonical role>"
+session_id: "<actual author session>"
+lease_epoch: 1
+order_id: "<exact order>"
+task_id: "<stable task>"
+prior_checkpoint: null
+source_head: "<exact remote commit>"
+source_tree: "<exact Git tree>"
+lock_sha256: null
+inbound_refs: []
+stage: PREPARED
+evidence_expected: []
+evidence_verified: []
+tests: []
+missing_evidence: []
+report_ref: null
+report_blob: null
+status_ref: null
+status_expected_old: null
+recovery_of: null
+unresolved_primary: []
+unresolved_reserves: []
+next_action: "<next safe step>"
+authority: "<actual valid lease or recovery channel>"
