@@ -37,3 +37,8 @@ status: PARTIAL_OR_DONE_AS_EVIDENCED
 ## Resumable publication (§31)
 - transaction_id, reserved report ID, prior checkpoint, exact remote source and evidence pins; publication stage and verified readback.
 - Partial evidence and missing raw RC/logs explicit; recovery/correction links original report/reservation and old session, new actual author/session; reconcile status by valid CAS only.
+
+## Standing authority and throughput (§32)
+- Authorization ledger ref; actual grant/domain/target/validity and prerequisite evidence; no unrelated flag as veto.
+- For each refusal: exact clause or observed technical blocker, actual RC/log if executed, accountable owner and next action; NOT_RUN if impossible.
+- Authoritative CI backend and exact native pin; non-authoritative backend separate. Independent READY work continued; aggregate safe capacity and baseline preservation.

@@ -1,0 +1,30 @@
+# Illustrative non-operational authorization ledger (§32). No field grants permission.
+schema: mads.authorization-ledger.v1
+cycle_id: null
+role_id: null
+session_id: null
+lease_epoch: null
+canonical_policy_ref: null
+stop_scan_ref: null
+tasks:
+  - task_id: null
+    operation: null
+    authority_domain: null # SOURCE | SCOPED_LOCAL_TEST | ISOLATED_CI | EXTERNAL_HOST | HOST_ADMIN | DEPLOYMENT | PRODUCTION
+    target: null
+    grant_id: null
+    grant_ref: null
+    scope: null
+    valid_until: null
+    termination_clause: null
+    state: UNKNOWN # VERIFIED_ACTIVE | EXPIRED | REVOKED | OUT_OF_SCOPE | UNKNOWN | CONFLICT
+    prerequisite_evidence: []
+    decision: NOT_RUN
+    refusal:
+      category: null
+      exact_clause_or_observed_cause: null
+      command: null
+      exit_code: null # null if not executed
+      log_ref: null
+      owner: null
+      next_safe_action: null
+    independent_ready_tasks: []
