@@ -2,7 +2,7 @@
 
 **Portable, Git-native multi-agent software development protocol.** The standard is readable without credentials; individual adopting projects remain isolated and retain their own private Git credentials, code, mailboxes and source approval.
 
-Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in full, particularly its normative Sections 18–31.
+Read [MULTI-AGENT-DEVELOPMENT-SYSTEM.md](MULTI-AGENT-DEVELOPMENT-SYSTEM.md) in full, particularly its normative Sections 18–32.
 
 ## Core model
 
@@ -74,3 +74,7 @@ Section 31 requires a resumable Git publication journal, idempotent readback, re
 ### v2.0.6 release-ready source
 
 The consolidated source is approved for packaging. The exact v2.0.6 candidate tree passed the canonical Python draft-export and manifest verification workflow (PR #10, run 45605511376). A separate downloadable [verified draft archive](dist/mads-standard-v2.0.6-draft.zip) and [SHA-256](dist/mads-standard-v2.0.6-draft.zip.sha256) were committed in PR #11 using an alternate ZIP_STORED exporter. Neither candidate artifact is the immutable published release. The final non-draft archive must be built and verified from the release-ready source, with the exact tag and release assets checked independently. Stable published version remains v2.0.2 until that verification succeeds.
+
+## Candidate v2.0.7
+
+Section 32 clarifies standing grants, evidence-bound refusals, independent READY work and authoritative CI. This is a candidate, not a published release or an installed runtime.

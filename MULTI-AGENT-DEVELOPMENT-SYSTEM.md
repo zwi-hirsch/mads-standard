@@ -18,7 +18,7 @@
 7. **One shared deterministic Git Watchdog per project**, at most one optional Owner ChatGPT condition-watch; no fake live heartbeat or automatic inactive-chat execution.
 8. **Durable bootstrapping and project isolation.** Store role/owner memory, exact source and operator records in verified Git; never share secrets or project-specific authority across projects.
 
-**Read Sections 18–31 as the integrated v2.0 normative update** to the retained reference Sections 1–17. Where older illustrative templates differ, the v2 source/authority gates prevail; project-level exceptions require an explicit approved ADR and may not waive security/release controls.
+**Read Sections 18–32 as the integrated v2.0 normative update** to the retained reference Sections 1–17. Where older illustrative templates differ, the v2 source/authority gates prevail; project-level exceptions require an explicit approved ADR and may not waive security/release controls.
 
 
 **Purpose.** Allow one project owner, code-writing AI specialists and independent validation agents to collaborate through one canonical Git source, without relying on fragile chat history. This standard is portable to GitHub, Gitea and tested self-hosted Git. It does not assume chat spawning, ongoing inactive-chat execution or an already installed Watchdog.
@@ -867,4 +867,34 @@ Owner MUST identify orphaned source/evidence/checkpoints when receiving reports,
 
 Required hostile cases: crash before first push, after source push, after partial evidence, after verified evidence before REPORT, after REPORT before status CAS, timeout with identical remote report, conflicting same ID, stale status pin, new additive mail vs STOP/revocation, expired lease, missing raw RC/log, competing writer, old report partially published, and duplicate recovery attempt. Check no proof is promoted, no work lost/double counted, no stale writes, and no authority escalation. Policy/template checks alone are not an executed live recovery drill.
 
-**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.6 candidate.**
+## 32. Standing execution authority and removal of avoidable development blockers (v2.0.7)
+
+**Normative principle:** block the specific unauthorized, unsafe or technically impossible operation, not the entire role. Maximize dependency-safe productive work under verified authority; do not expand privileges, weaken tests or manufacture proof. This section clarifies §§18–31 and overrides conflicting illustrative legacy text.
+
+### 32.1 Authorization ledger and preflight
+
+Before each work package and after material authority changes, reconcile current canonical decisions, both mailboxes, active session/lease, applicable standing execution grants, STOP/security records and actual environment. Maintain a durable, task-scoped authorization ledger: operation/resource/target, grant ID and immutable reference, permitted scope, validity/termination clause, exact current state, evidence of prerequisites, and decision. Distinguish source writing, local scoped tests, authorized isolated CI/lab execution, other external hosts, host administration, deployment and production. A grant in one domain never implies another. Generic inherited metadata must be interpreted in its declared domain, not as a substitute for the operative grant. If records genuinely conflict, authority is missing/expired/revoked, target is out of scope or isolation is unverified, stop only the affected operation and escalate precisely; never assume ambiguity grants permission. STOP/security overrides and strong fencing requirements remain binding.
+
+An active standing grant may authorize repeated specified operations on bounded resources until its stated expiry or termination condition. Do not require a fresh human turn, new ORDER, new lease or repeated consent for each already-authorized operation. Recheck scope, pin, actual capacity/isolation and current revocation before execution. An independently required approval is never inferred from convenience or silence.
+
+### 32.2 Evidence-bound refusal and negative results
+
+Every BLOCKED/NOT_RUN decision must identify the affected task, category, exact actionable cause, accountable owner, next safe action and dependency. An authority refusal identifies the applicable grant or missing required grant, exact relevant clause/expiry/STOP/scope mismatch and reference. A technical refusal identifies the actual failed preflight, observed tool/resource/capability, raw command, exit status and log when executed; when impossible to execute, state NOT_RUN and the observed prerequisite evidence, never invent RC. A bare unrelated flag or generic label is not adequate. Preserve and correct an erroneous report by additive CORRECTION under §31; do not suppress truthful refusals.
+
+Where authorized, safe and feasible, execute negative/preflight tests even when positive success is unlikely; a real fail-closed trace is useful evidence, not justification for skipping the test. Stop at a genuine missing safety prerequisite, without bypassing it. Record actual negative evidence and its limits; do not infer a root cause solely from coincident failures. Negative evidence is not a positive gate PASS.
+
+### 32.3 Independent progress and bounded resources
+
+An active role continues all previously authorized dependency-safe primary/reserve work after each checkpoint and REPORT, without routine continuation prompts or artificial per-report task caps. Owner replenishes the configured READY low-watermark (for example 5–8 independent tasks) as a target, not a maximum. This never authorizes inventing new scope or unbounded work; only finite authorized queues, current leases and actual capacity apply. Separate source development from dependent integration, native qualification and release acceptance. Preserve an immutable baseline when necessary; allow safe successor work on a separate owned branch rather than freezing all development. Prepare exact executable off-scope patch/test proposals in an authorized evidence location without prior permission to prepare; a unique authorized writer reviews and applies them. No direct foreign-path mutation or self-approval. Missing evidence blocks only dependent acceptance; independent review must remain independent.
+
+Measure actual aggregate CPU/RAM/disk/PID/network budgets and tool availability. Parallelize independent work only within verified safe capacity. Do not add paid services, privileged runners, shared host changes or credentials by implication. Model/context/platform limits and actual resource constraints are not removable by policy.
+
+### 32.4 CI authority and bootstrap
+
+Declare the authoritative execution backend and evidence handoff in the project manifest. Git hosting, review and evidence storage may be separate from CI execution. A retired/unavailable hosted backend is NON_AUTHORITATIVE/NOT_USED; its red badges alone are not product failures or a new remediation task. Do not dispatch/retry obsolete jobs. Preserve substantive historical executed failures at their exact pins. For the current backend, report actual source HEAD/TREE/lock, commands/toolchain, exit codes/counts/raw logs, manifest and recovery; absent/stale evidence is NOT_RUN/BLOCKED_EVIDENCE, never PASS. Local scoped tests are labeled separately from full native qualification. Retire obsolete triggers/required checks only by explicit review with equivalent substantive gates preserved. Watchdog may use the configured authorized backend or bounded manual monitoring; do not invent deployment or auto-wake.
+
+Apply this section in durable bootstrap, task reports and successor recovery. Owner audits recurring procedural refusals and removes stale contradictory instructions, updates scoped status by verified CAS, tracks ACKs, and routes actual blockers to the correct executor. Do not count permissions, orders, or reports as product progress.
+
+Required acceptance cases: standing grant repeated run without new consent; unrelated negative flag cannot veto a matching live grant; expired/revoked/STOP/out-of-scope grant denied; absent isolation denied; unknown conflicting authority escalated; actual negative evidence preserved; impossible preflight reports NOT_RUN without fake RC; one blocked task does not stall independent READY work; baseline preserved while successor develops; off-scope proposal allowed but foreign write refused; obsolete CI red excluded without promoting actual test failure; aggregate resource budget and independent acceptance maintained. Policy/template checks alone are not live execution proof.
+
+**End of MULTI-AGENT DEVELOPMENT SYSTEM v2.0.7 candidate.**

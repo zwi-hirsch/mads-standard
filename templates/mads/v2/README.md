@@ -20,3 +20,5 @@ Copy templates into **your own** project repository, replace placeholders with a
 - `BLOCKER-LEDGER.example.yaml`: stable evidence-bound blockers, accountable remediation, next-gate readiness and independent closure under §30.
 
 - `REPORT-PUBLICATION.example.yaml`: resumable publication transaction, recovery and readback (§31).
+
+- `AUTHORIZATION-LEDGER.example.yaml`: task-scoped standing grant preflight and evidence-bound refusals (§32).

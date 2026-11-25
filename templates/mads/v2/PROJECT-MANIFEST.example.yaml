@@ -49,7 +49,14 @@ watchdog:
   per_specialist_chat_tasks: false
   owner_chat_watch_max: 1
   observed_real_scan: false
+ci_execution:
+  authoritative_backend: UNCONFIGURED
+  evidence_channel: null
+  retired_backends: []
+  actual_execution_verified: false
+standing_execution_grants: [] # explicit project-scoped grants only
 scheduler:
+  ready_low_watermark: 5 # replenishment target, not work cap
   primary_tasks_per_queue: 5
   reserve_tasks_per_queue: 7
   source_ready_evaluator_tested: false
