@@ -1,0 +1,124 @@
+{
+  "schema": "mads.candidate-archive-verification.v1",
+  "source_commit": "3d2ced60bf9d38dd30251f8864cdce3d84ce614f",
+  "source_tree": "c7107ac0724812ab03bd97c66811cc885d1c4a88",
+  "archive": "dist/mads-standard-v2.0.6-draft.zip",
+  "archive_git_blob": "426342d432dce7a9443ba77a509046000b085f9d",
+  "archive_sha256": "3a018104700424823e9f15b21754f640c27ab759d0d8653647aeeced30b6aff4",
+  "bytes": 176362,
+  "source_members": 20,
+  "zip_members": 22,
+  "source_blobs": [
+    {
+      "path": "LICENSE",
+      "git_blob": "137069b823873b8bcf42979bcf8e9371052d26a2",
+      "bytes": 10280
+    },
+    {
+      "path": "MADS-VERSION.yaml",
+      "git_blob": "8534615ab3c24066cd1c263367a0541c01f82d3a",
+      "bytes": 782
+    },
+    {
+      "path": "MULTI-AGENT-DEVELOPMENT-SYSTEM.md",
+      "git_blob": "518f318063b2fcae04d93e749dbc917db9b12623",
+      "bytes": 97772
+    },
+    {
+      "path": "PUBLISHING.md",
+      "git_blob": "ddd4a7f8a13c52f2a940d5daed5f0eff3f5e2566",
+      "bytes": 3590
+    },
+    {
+      "path": "README.md",
+      "git_blob": "02a5dd960591b7703faf3f79ef000717962c4350",
+      "bytes": 7043
+    },
+    {
+      "path": "SECURITY.md",
+      "git_blob": "88774d07cb30f2761ce4ddc28290685584ab9ad0",
+      "bytes": 1725
+    },
+    {
+      "path": "scripts/build_release.py",
+      "git_blob": "00456d1eafcd8f36372ce661d36eb8f871dcb547",
+      "bytes": 6181
+    },
+    {
+      "path": "templates/mads/v2/BLOCKER-LEDGER.example.yaml",
+      "git_blob": "f5a043356bf01a49711af7de4294fe71556c1104",
+      "bytes": 916
+    },
+    {
+      "path": "templates/mads/v2/INTEGRATION-HANDOFF.example.md",
+      "git_blob": "2ea375396c62b4b61d8758458a4118ff186a47cc",
+      "bytes": 1410
+    },
+    {
+      "path": "templates/mads/v2/MADS-VERSION-LOCK.example.yaml",
+      "git_blob": "0845696bf218b2be560b3fc8d4c6c1a7a19e39b2",
+      "bytes": 548
+    },
+    {
+      "path": "templates/mads/v2/NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md",
+      "git_blob": "afdfdabeb4302f333d6d96a0a54d8f3e73c216b7",
+      "bytes": 19796
+    },
+    {
+      "path": "templates/mads/v2/PILOT-ACCEPTANCE.example.md",
+      "git_blob": "7195245ec070ee9e40086f51a6d288e2fef958b1",
+      "bytes": 1816
+    },
+    {
+      "path": "templates/mads/v2/PROJECT-MANIFEST.example.yaml",
+      "git_blob": "c330db1dd99e5733cd810ba12d24c156a4bfe814",
+      "bytes": 2678
+    },
+    {
+      "path": "templates/mads/v2/READ-ONLY-ONBOARDING.example.md",
+      "git_blob": "3a74e3678c44b5020e11de76472eeb00c0bca0fe",
+      "bytes": 1291
+    },
+    {
+      "path": "templates/mads/v2/README.md",
+      "git_blob": "f16705c08e055cee46801480f387dcb95f8dbf2a",
+      "bytes": 1666
+    },
+    {
+      "path": "templates/mads/v2/REPORT-PUBLICATION.example.yaml",
+      "git_blob": "3bcaef18adc6b4e67cc387c91e38edebe52f7fe7",
+      "bytes": 715
+    },
+    {
+      "path": "templates/mads/v2/ROLE-REPORT.example.md",
+      "git_blob": "d0e20d9637b3263f4ae004514caeca25b52fecc9",
+      "bytes": 2466
+    },
+    {
+      "path": "templates/mads/v2/SESSION-RECOVERY.example.md",
+      "git_blob": "6bca484f4e51ee9467c09284f0cb750eec0e8173",
+      "bytes": 2979
+    },
+    {
+      "path": "templates/mads/v2/SOURCE-HANDOFF.example.yaml",
+      "git_blob": "7e9beaf2e05d24a71a376edefdbb599a64bfeeb5",
+      "bytes": 1634
+    },
+    {
+      "path": "templates/mads/v2/SOURCE-SESSION-START.example.md",
+      "git_blob": "dc2d488df72c68e3b6f070758060eaac6baef9a5",
+      "bytes": 2520
+    }
+  ],
+  "validation": {
+    "sha256_known_answer": "PASS",
+    "crc32_known_answer": "PASS",
+    "headings_1_to_31": "PASS",
+    "two_deterministic_builds_same_hash": "PASS",
+    "all_members_crc_and_sha256": "PASS",
+    "privacy_pattern_scan": "PASS",
+    "method": "ZIP_STORED alternate exporter in isolated connector execution; original scripts/build_release.py NOT_RUN",
+    "publication_status": "STAGED_NOT_PUBLISHED",
+    "github_release": "NOT_PUBLISHED"
+  }
+}
