@@ -23,3 +23,6 @@ All rows are acceptance expectations, NOT_RUN until a real drill. Cooperative ma
 
 ## Mandatory blocker continuity (§30)
 Recover current Git blocker/dependency ledger, exact unresolved obligations, recurrence, owners, next actions and approval requirements. Check next-gate readiness, escalate repeated or orphaned blockers and initiate scope-safe remediation in the same active invocation. Record missing ledger evidence as UNKNOWN/BLOCKED_RESTORE as applicable. A successor does not require old-chat memory or final handoff; no new authority is implied.
+
+## Interrupted publication (§31)
+Recover orphaned source/evidence and transaction journal against actual remote refs; compare exact report bytes and status. If report missing/partial, use new unique recovery/correction report with original transaction reference; never invent missing evidence or overwrite old mail. Validate new STOP/lease/expiry before further writes. Source and evidence already verified do not require rerun merely because the final report is missing.
