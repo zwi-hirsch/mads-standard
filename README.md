@@ -70,3 +70,7 @@ Section 30 requires active blocker ownership, anticipatory readiness, timely aut
 ## v2.0.6 candidate — interrupted REPORT publication
 
 Section 31 requires a resumable Git publication journal, idempotent readback, recovery from orphaned source/evidence, separate recovery/correction reports and status reconciliation. See [publication checkpoint template](templates/mads/v2/REPORT-PUBLICATION.example.yaml). This source candidate includes prior §28–30 changes; stable release publication remains separate.
+
+### v2.0.6 release-ready source
+
+The consolidated source is approved for packaging. The exact v2.0.6 candidate tree passed the canonical Python draft-export and manifest verification workflow (PR #10, run 45605511376). A separate downloadable [verified draft archive](dist/mads-standard-v2.0.6-draft.zip) and [SHA-256](dist/mads-standard-v2.0.6-draft.zip.sha256) were committed in PR #11 using an alternate ZIP_STORED exporter. Neither candidate artifact is the immutable published release. The final non-draft archive must be built and verified from the release-ready source, with the exact tag and release assets checked independently. Stable published version remains v2.0.2 until that verification succeeds.
