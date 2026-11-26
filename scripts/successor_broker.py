@@ -134,10 +134,16 @@ def prepared_transaction(repo, lines, checks, updates):
             proc.stdin.close()
             require(proc.wait() == 0, 'transaction failed')
         finally:
-            if proc.poll() is None:
-                proc.stdin.close()  # EOF aborts an uncommitted prepared transaction
-                proc.wait()
-            proc.stdout.close()
+            # Close owned pipes even if prepare failed and the child already exited.
+            # EOF aborts any uncommitted prepared transaction; always reap the child.
+            try:
+                if not proc.stdin.closed:
+                    proc.stdin.close()
+            finally:
+                try:
+                    proc.wait()
+                finally:
+                    proc.stdout.close()
 
 
 def time(value):

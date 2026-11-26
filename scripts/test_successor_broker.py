@@ -200,6 +200,54 @@ class BrokerTests(unittest.TestCase):
         self.policy['roles'][ROLE]['ledger_path'] = 'other.json'
         self.denied()
 
+    def capture_transaction_children(self):
+        children = []
+        real_popen = subprocess.Popen
+        def observe(argv, *args, **kwargs):
+            child = real_popen(argv, *args, **kwargs)
+            if 'update-ref' in argv and '--stdin' in argv:
+                children.append(child)
+            return child
+        return children, patch.object(broker.subprocess, 'Popen', side_effect=observe)
+
+    def assert_transaction_closed(self, children):
+        self.assertEqual(len(children), 1)
+        child = children[0]
+        self.assertIsNotNone(child.returncode)
+        self.assertTrue(child.stdin.closed)
+        self.assertTrue(child.stdout.closed)
+        self.assertFalse(list(self.repo.rglob('*.lock')))
+
+    def ref_snapshot(self):
+        return git(self.repo, 'for-each-ref', '--format=%(refname) %(objectname) %(symref)')
+
+    def test_prepared_child_success_cleanup(self):
+        children, hook = self.capture_transaction_children()
+        with hook:
+            self.assertEqual(self.runreq()['state'], 'OFFERED_CONDITIONAL')
+        self.assert_transaction_closed(children)
+
+    def test_prepared_child_failed_prepare_cleanup(self):
+        before = self.ref_snapshot()
+        children, hook = self.capture_transaction_children()
+        with hook, self.assertRaises(subprocess.CalledProcessError):
+            atomic(self.repo, {SRC: self.old}, {PTR: (self.old, self.old)})
+        self.assert_transaction_closed(children)
+        self.assertEqual(self.ref_snapshot(), before)
+
+    def test_prepared_child_abort_cleanup(self):
+        before = self.ref_snapshot()
+        children, hook = self.capture_transaction_children()
+        real_oid = broker.oid
+        def reject(repo, ref):
+            if ref == SRC:
+                raise ValueError('test injected validation refusal while prepared')
+            return real_oid(repo, ref)
+        with hook, patch.object(broker, 'oid', side_effect=reject), self.assertRaises(ValueError):
+            atomic(self.repo, {SRC: self.head}, {PTR: (self.old, self.old)})
+        self.assert_transaction_closed(children)
+        self.assertEqual(self.ref_snapshot(), before)
+
     def test_non_object_and_nonfinite_json(self):
         for raw in (b'[]', b'null', b'{"x":NaN}', b'{"x":1e999}', b'\xff'):
             with self.subTest(raw=raw), self.assertRaises(ValueError): parse(raw)
