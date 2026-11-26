@@ -121,11 +121,12 @@ def verify_archive(archive, anchor, *, allow_draft=False):
     expected = anchor['files_sha256']
     prefix = 'mads-standard-v' + anchor['version'] + '/'
     metadata = {'RELEASE-MANIFEST.json', 'SHA256SUMS.txt'}
-    require(not metadata.intersection(expected), 'RESERVED_PATH')
+    require(not {k.casefold() for k in metadata}.intersection(k.casefold() for k in expected), 'RESERVED_PATH')
     with zipfile.ZipFile(BytesIO(raw)) as z:
         infos = z.infolist()
         names = [i.filename for i in infos]
         require(len(names) == len(set(names)), 'DUPLICATE_ZIP_MEMBER')
+        require(len(names) == len({n.casefold() for n in names}), 'CASE_ALIAS_ZIP_MEMBER')
         require(set(names) == {prefix + k for k in set(expected) | metadata}, 'ZIP_FILE_SET_MISMATCH')
         require(sum(i.file_size for i in infos) <= MAX_ZIP, 'ZIP_EXPANSION_LIMIT')
         for i in infos:
@@ -155,7 +156,8 @@ def verify_source(root, anchor):
 
 
 def git(repo, *args):
-    env = dict(os.environ, GIT_NO_REPLACE_OBJECTS='1')
+    env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+    env.update(GIT_NO_REPLACE_OBJECTS='1', GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=os.devnull)
     return subprocess.run(['git', '-C', str(repo), *args], check=True, env=env,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
 
@@ -233,13 +235,24 @@ def changed_paths(repo, base, head):
     for commit in (base, head):
         require(git(repo, 'rev-parse', '--verify', commit + '^{commit}').decode().strip() == commit, 'COMMIT_MISMATCH')
     git(repo, 'merge-base', '--is-ancestor', base, head)
-    raw = git(repo, 'diff', '--no-renames', '--raw', '-z', base, head).decode('utf-8').split('\0')[:-1]
-    require(len(raw) % 2 == 0, 'MALFORMED_GIT_DIFF')
+    # Compare complete immutable trees, not a configurable worktree diff.
+    def entries(commit):
+        raw = git(repo, 'ls-tree', '-r', '-z', '--full-tree', commit)
+        require(not raw or raw.endswith(b'\0'), 'MALFORMED_GIT_TREE')
+        result = {}
+        for entry in raw.split(b'\0')[:-1]:
+            meta, rel = entry.decode('utf-8').split('\t', 1)
+            mode, kind, oid = meta.split()
+            require(rel not in result, 'DUPLICATE_GIT_PATH')
+            result[rel] = (mode, kind, oid)
+        return result
+    before, after = entries(base), entries(head)
     paths = []
-    for meta, rel in zip(raw[::2], raw[1::2]):
-        parts = meta.split()
-        require(len(parts) == 5 and parts[0].startswith(':'), 'MALFORMED_GIT_DIFF')
-        require(parts[0][1:] in ('000000', '100644', '100755') and parts[1] in ('000000', '100644', '100755'), 'UNSAFE_GIT_FILE_MODE:' + rel)
+    for rel in sorted(before.keys() | after.keys()):
+        if before.get(rel) == after.get(rel):
+            continue
+        for entry in (before.get(rel), after.get(rel)):
+            require(entry is None or (entry[0] in ('100644', '100755') and entry[1] == 'blob'), 'UNSAFE_GIT_FILE_MODE:' + rel)
         paths.append(path_name(rel))
     return paths
 

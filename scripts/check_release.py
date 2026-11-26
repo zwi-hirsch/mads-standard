@@ -7,7 +7,7 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
-from build_release import CORE, REQUIRED, ROOT, VERSION, project_sections
+from build_release import CORE, REQUIRED, ROOT, VERSION, project_sections, project_status, version_fields
 from mads_verify import file_bytes, git, require, sha, verify_archive
 
 
@@ -20,8 +20,8 @@ def run():
     head = git(ROOT, 'rev-parse', 'HEAD').decode().strip()
     require(git(ROOT, 'status', '--porcelain', '--untracked-files=no') == b'', 'DIRTY_TRACKED_SOURCE')
     version_text = git(ROOT, 'show', head + ':MADS-VERSION.yaml').decode()
-    statuses = re.findall(r'^publication_status: (STAGED_NOT_PUBLISHED|RELEASE_READY|RELEASED)$', version_text, re.M)
-    require(len(statuses) == 1 and a.draft == (statuses[0] == 'STAGED_NOT_PUBLISHED'), 'PUBLICATION_STATUS_MISMATCH')
+    fields = version_fields(version_text)
+    require(fields.get('publication_status') == project_status() and a.draft == (project_status() == 'STAGED_NOT_PUBLISHED'), 'PUBLICATION_STATUS_MISMATCH')
     paths = set(REQUIRED) | {'LICENSE'}
     files = {}
     for rel in sorted(paths):

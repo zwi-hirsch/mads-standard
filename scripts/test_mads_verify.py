@@ -171,6 +171,45 @@ class VerifyTests(unittest.TestCase):
         dirty=call('check_release.py','--archive',archive,'--anchor-out',trust,'--draft')
         self.assertEqual(dirty.returncode,1);self.assertEqual(json.loads(dirty.stdout)['error'],'DIRTY_TRACKED_SOURCE')
 
+    def test_reserved_metadata_case_aliases(self):
+        for rel in ('release-manifest.json', 'sha256sums.TXT', 'RELEASE-MANIFEST.JSON'):
+            payload = dict(self.payload, **{rel: b'alias'})
+            p, a = self.archive(payload)
+            a['files_sha256'] = {k: sha(v) for k, v in payload.items()}
+            with self.subTest(rel=rel), self.assertRaisesRegex(ValueError, 'RESERVED_PATH'):
+                verify_archive(p, release_anchor(encode(a), sha(encode(a))))
+
+    def test_version_yaml_duplicates_and_unsupported_syntax(self):
+        from build_release import version_fields
+        valid = 'version: "2.0.7"\nnormative_sections: 33\npublication_status: STAGED_NOT_PUBLISHED\nintegrity:\n  release_tag: v2.0.7\n'
+        self.assertEqual(version_fields(valid)['version'], '"2.0.7"')
+        for suffix in ('version: "9.9.9"\n', 'normative_sections: 34\n',
+                       'publication_status: RELEASED\n', '  release_tag: v9.9.9\n',
+                       '"version": "9.9.9"\n', 'extra: &alias value\n', 'extra: {x: y}\n'):
+            with self.subTest(suffix=suffix), self.assertRaises(ValueError):
+                version_fields(valid + suffix)
+
+    def test_gitlink_changes_under_hostile_diff_config(self):
+        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
+        git(self.root, 'config', 'user.name', 'TEST')
+        git(self.root, 'config', 'user.email', 'test@example.invalid')
+        git(self.root, 'add', 'STANDARD.md')
+        git(self.root, 'commit', '-qm', 'base')
+        base = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        git(self.root, 'config', 'diff.ignoreSubmodules', 'all')
+        git(self.root, 'update-index', '--add', '--cacheinfo', '160000,' + base + ',foreign-module')
+        git(self.root, 'commit', '-qm', 'add gitlink')
+        added = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        git(self.root, 'update-index', '--cacheinfo', '160000,' + added + ',foreign-module')
+        git(self.root, 'commit', '-qm', 'update gitlink')
+        updated = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        git(self.root, 'update-index', '--force-remove', 'foreign-module')
+        git(self.root, 'commit', '-qm', 'delete gitlink')
+        deleted = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        for old, new in ((base, added), (added, updated), (updated, deleted)):
+            with self.subTest(old=old, new=new), self.assertRaisesRegex(ValueError, 'UNSAFE_GIT_FILE_MODE'):
+                changed_paths(self.root, old, new)
+
     def test_evidence(self):
         subprocess.run(['git','init','-q',str(self.root)],check=True)
         git(self.root,'config','user.name','TEST');git(self.root,'config','user.email','test@example.invalid')

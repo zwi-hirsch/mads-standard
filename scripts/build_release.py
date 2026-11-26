@@ -15,22 +15,79 @@ import zipfile
 from mads_verify import file_bytes
 
 ROOT = Path(__file__).resolve().parent.parent
-def project_version():
-    text=(ROOT/"MADS-VERSION.yaml").read_text(encoding="utf-8")
+def version_fields(text):
+    """Strict restricted YAML: flat scalars and one-level maps/lists only.
+
+    Reject unsupported YAML rather than interpreting aliases, tags, merge keys,
+    quoted keys, flow syntax, multiline values or ambiguous duplicate keys.
+    """
+    root = {}
+    parent = None
     for line in text.splitlines():
-        if line.startswith("version:"):
-            value=line.split(":",1)[1].strip().strip('"')
-            if re.fullmatch("[0-9]+([.][0-9]+){2}",value):
-                return value
-    raise SystemExit("INVALID_VERSION: require semver in MADS-VERSION.yaml")
+        if not line.strip() or line.lstrip().startswith('#'):
+            continue
+        match = re.fullmatch(r'([a-z][a-z0-9_]*):(?: ([^#]*?)(?: #.*)?)?', line)
+        if match:
+            key, value = match.groups()
+            if key in root:
+                raise ValueError('DUPLICATE_VERSION_KEY:' + key)
+            parent = key
+            root[key] = value if value is not None else None
+            if value is not None and not re.fullmatch(r'(?:"[0-9.]+")|[A-Za-z0-9_./ -]+', value):
+                raise ValueError('INVALID_VERSION_SCALAR:' + key)
+            continue
+        match = re.fullmatch(r'  ([a-z][a-z0-9_]*): ([A-Za-z0-9_./ -]+?)(?: #.*)?', line)
+        if match and parent is not None:
+            key, value = match.groups()
+            if root[parent] is None:
+                root[parent] = {}
+            if type(root[parent]) is not dict or key in root[parent]:
+                raise ValueError('DUPLICATE_OR_INVALID_VERSION_KEY:' + parent + '.' + key)
+            root[parent][key] = value
+            continue
+        match = re.fullmatch(r'  - ([A-Za-z0-9_./-]+)', line)
+        if match and parent is not None:
+            if root[parent] is None:
+                root[parent] = []
+            if type(root[parent]) is not list or match[1] in root[parent]:
+                raise ValueError('DUPLICATE_OR_INVALID_VERSION_ITEM:' + parent)
+            root[parent].append(match[1])
+            continue
+        raise ValueError('UNSUPPORTED_VERSION_YAML')
+    if any(value is None for value in root.values()):
+        raise ValueError('EMPTY_VERSION_FIELD')
+    return root
+
+
+def project_version():
+    fields = version_fields((ROOT / 'MADS-VERSION.yaml').read_text(encoding='utf-8'))
+    value = fields.get('version')
+    if type(value) is not str or not re.fullmatch(r'"[0-9]+\.[0-9]+\.[0-9]+"', value):
+        raise ValueError('INVALID_VERSION')
+    return value[1:-1]
+
 
 def project_sections():
-    values = re.findall(r'^normative_sections: ([1-9][0-9]*)$', (ROOT / 'MADS-VERSION.yaml').read_text(encoding='utf-8'), re.M)
-    if len(values) != 1:
-        raise SystemExit('INVALID_NORMATIVE_SECTION_COUNT')
-    return int(values[0])
+    fields = version_fields((ROOT / 'MADS-VERSION.yaml').read_text(encoding='utf-8'))
+    value = fields.get('normative_sections')
+    if type(value) is not str or not re.fullmatch(r'[1-9][0-9]*', value):
+        raise ValueError('INVALID_NORMATIVE_SECTION_COUNT')
+    return int(value)
 
-VERSION = project_version()
+
+def project_status():
+    value = version_fields((ROOT / 'MADS-VERSION.yaml').read_text(encoding='utf-8')).get('publication_status')
+    if value not in ('STAGED_NOT_PUBLISHED', 'RELEASE_READY', 'RELEASED'):
+        raise ValueError('INVALID_PUBLICATION_STATUS')
+    return value
+
+try:
+    VERSION = project_version()
+    project_sections()
+    project_status()
+except (OSError, ValueError) as exc:
+    raise SystemExit(str(exc))
+
 CORE = "MULTI-AGENT-DEVELOPMENT-SYSTEM.md"
 REQUIRED = [
     "README.md", "SECURITY.md", "PUBLISHING.md", "MADS-VERSION.yaml", CORE,
@@ -84,7 +141,7 @@ def main():
         raise SystemExit("LICENSE_REQUIRED: select and add an explicit public reuse license before release")
     if not args.draft and not (ROOT / "LICENSE").read_text(encoding="utf-8").startswith("Apache License\nVersion 2.0, January 2004"):
         raise SystemExit("INVALID_RELEASE_LICENSE: expected approved official Apache 2.0 text")
-    if not args.draft and "STAGED_NOT_PUBLISHED" in (ROOT/"MADS-VERSION.yaml").read_text(encoding="utf-8"):
+    if not args.draft and project_status() == 'STAGED_NOT_PUBLISHED':
         raise SystemExit("VERSION_NOT_FINAL: update MADS-VERSION.yaml status before public release")
     manifest = {}
     payload = {}

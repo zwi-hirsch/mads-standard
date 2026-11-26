@@ -13,6 +13,7 @@ artifacts:
   - scripts/mads_verify.py
   - scripts/test_mads_verify.py
   - scripts/check_release.py
+  - scripts/build_release.py
 integrity:
   release_trust_manifest: OWNER_APPROVED_OUT_OF_BAND_SHA256_REQUIRED
   release_sha256_manifest: VERIFY_RELEASE_ASSET_SHA256_AT_PUBLICATION
