@@ -10,7 +10,7 @@ import unittest
 import warnings
 import zipfile
 from pathlib import Path
-from mads_verify import (anchored, changed_paths, git, release_anchor, sha, strict_json, verify_archive,
+from mads_verify import (anchored, changed_paths, git, path_name, portable_paths, release_anchor, sha, strict_json, verify_archive,
                          verify_evidence, verify_projection, verify_scope, verify_source)
 
 
@@ -209,6 +209,90 @@ class VerifyTests(unittest.TestCase):
         for old, new in ((base, added), (added, updated), (updated, deleted)):
             with self.subTest(old=old, new=new), self.assertRaisesRegex(ValueError, 'UNSAFE_GIT_FILE_MODE'):
                 changed_paths(self.root, old, new)
+
+    def test_portable_device_names(self):
+        for rel in ('src/CON', 'src/NUL.txt', 'src/AUX', 'src/COM1', 'src/LPT9',
+                    'src/prn.tar.gz', 'src/con/file.txt', 'src/lpt1.any'):
+            with self.subTest(rel=rel), self.assertRaisesRegex(ValueError, 'RESERVED_DEVICE_PATH'):
+                path_name(rel)
+        for rel in ('src/CONSOLE.txt', 'src/COM10', 'src/LPT0', 'src/Auxiliary/a.py', 'src/a.txt'):
+            self.assertEqual(path_name(rel), rel)
+
+    def test_portable_component_sets(self):
+        for paths in (['src/a', 'src/A'], ['Src/x', 'src/y'],
+                      ['src/a', 'src/a/b'], ['src/a', 'src/a']):
+            with self.subTest(paths=paths), self.assertRaises(ValueError):
+                portable_paths(paths)
+        portable_paths(['src/a', 'src/b', 'src/sub/c'])
+
+    def test_portable_git_cli(self):
+        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
+        git(self.root, 'config', 'user.name', 'TEST')
+        git(self.root, 'config', 'user.email', 'test@example.invalid')
+        git(self.root, 'config', 'core.ignorecase', 'false')
+        blob = git(self.root, 'hash-object', '-w', 'STANDARD.md')
+        blob = blob.decode().strip()
+        git(self.root, 'update-index', '--add', '--cacheinfo', '100644,' + blob + ',src/a')
+        git(self.root, 'commit', '-qm', 'base')
+        base = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        for rel in ('src/A', 'Src/x', 'src/CON', 'src/NUL.txt', 'src/AUX', 'src/COM1', 'src/LPT9', 'src/safe.txt'):
+            with self.subTest(rel=rel):
+                git(self.root, 'reset', '--mixed', base)
+                git(self.root, 'update-index', '--add', '--cacheinfo', '100644,' + blob + ',' + rel)
+                git(self.root, 'commit', '-qm', 'candidate')
+                head = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+                cfg = dict(registry=['src/**'], lease=['src/**'], order=['src/**'],
+                           task=['src/**'], forbidden=[], base=base, head=head)
+                raw = encode(cfg)
+                f = self.root / 'anchor.json'; f.write_bytes(raw)
+                run = subprocess.run([sys.executable, str(Path(__file__).with_name('mads_verify.py')),
+                                      'scope', '--repo', str(self.root), '--anchor', str(f),
+                                      '--anchor-sha256', sha(raw)], capture_output=True)
+                safe = rel == 'src/safe.txt'
+                self.assertEqual(run.returncode, 0 if safe else 1, run.stdout + run.stderr)
+                self.assertEqual(json.loads(run.stdout)['state'], 'PASS' if safe else 'FAIL')
+
+    def test_case_only_transition_and_unchanged_alias(self):
+        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
+        git(self.root, 'config', 'user.name', 'TEST')
+        git(self.root, 'config', 'user.email', 'test@example.invalid')
+        git(self.root, 'config', 'core.ignorecase', 'false')
+        git(self.root, 'add', 'STANDARD.md')
+        git(self.root, 'commit', '-qm', 'base')
+        base = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        git(self.root, 'mv', 'STANDARD.md', 'standard.md')
+        git(self.root, 'commit', '-qm', 'case rename')
+        head = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        with self.assertRaisesRegex(ValueError, 'CASE_ALIAS_PATH'):
+            changed_paths(self.root, base, head)
+        blob = git(self.root, 'hash-object', '-w', 'standard.md').decode().strip()
+        git(self.root, 'update-index', '--add', '--cacheinfo', '100644,' + blob + ',STANDARD.md')
+        git(self.root, 'commit', '-qm', 'ambiguous tree')
+        bad = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        with self.assertRaisesRegex(ValueError, 'CASE_ALIAS_PATH'):
+            changed_paths(self.root, bad, bad)
+
+    def test_portable_source_projection_archive(self):
+        for payload in ({'Src/x': b'x', 'src/y': b'y'}, {'src/CON.txt': b'x'},
+                        {'src/a': b'x', 'src/a/b': b'y'}):
+            with self.subTest(payload=payload):
+                p, a = self.archive(payload)
+                a['files_sha256'] = {k: sha(v) for k, v in payload.items()}
+                with self.assertRaises(ValueError):
+                    verify_archive(p, a)
+                with self.assertRaises(ValueError):
+                    verify_source(self.root, a)
+        projection = dict(schema='mads.release-projection.v1', release_source_commit='1'*40,
+                          paths={'STANDARD.md': 'Src/x', 'templates/required.md': 'src/y'})
+        with self.assertRaisesRegex(ValueError, 'CASE_ALIAS_PATH'):
+            verify_projection(self.root, self.anchor, projection)
+        (self.root/'standard.md').write_bytes(b'standard')
+        with self.assertRaisesRegex(ValueError, 'MISSING_OR_ALIASED_PATH'):
+            verify_source(self.root, self.anchor)
+
+    def test_scope_case_alias_policy(self):
+        with self.assertRaisesRegex(ValueError, 'CASE_ALIAS_PATH'):
+            verify_scope(['src/**'], ['src/**'], ['src/**'], ['src/**'], ['src/a'], ['Src/**'])
 
     def test_evidence(self):
         subprocess.run(['git','init','-q',str(self.root)],check=True)

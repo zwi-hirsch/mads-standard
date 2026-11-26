@@ -57,7 +57,31 @@ def strict_json(raw):
 def path_name(value):
     require(type(value) is str and bool(re.fullmatch(r'[A-Za-z0-9_.@+-]+(?:/[A-Za-z0-9_.@+-]+)*', value)), 'UNSAFE_PATH')
     require(all(part.casefold() not in ('.', '..', '.git') and not part.endswith('.') for part in value.split('/')), 'UNSAFE_PATH')
+    for part in value.split('/'):
+        require(not re.fullmatch(r'CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]', part.split('.')[0], re.I),
+                'RESERVED_DEVICE_PATH:' + value)
+        require(len(part) <= 255, 'PATH_COMPONENT_TOO_LONG')
     return value
+
+
+def portable_paths(paths, *, file_set=True):
+    """Validate component spelling across a complete path set, not just leaves."""
+    seen = {}
+    leaves = set()
+    directories = set()
+    for rel in paths:
+        parts = path_name(rel).split('/')
+        for i in range(1, len(parts) + 1):
+            prefix = '/'.join(parts[:i])
+            key = prefix.casefold()
+            require(seen.setdefault(key, prefix) == prefix, 'CASE_ALIAS_PATH:' + prefix)
+            if file_set:
+                if i == len(parts):
+                    require(key not in directories and key not in leaves, 'PATH_TYPE_OR_DUPLICATE:' + prefix)
+                    leaves.add(key)
+                else:
+                    require(key not in leaves, 'PATH_TYPE_OR_DUPLICATE:' + prefix)
+                    directories.add(key)
 
 
 def hash_value(value):
@@ -74,6 +98,9 @@ def file_bytes(root, rel, limit=MAX_FILE):
     path_name(rel)
     p = root.resolve()
     for part in rel.split('/'):
+        # Require the actual directory entry spelling, including on case-insensitive hosts.
+        names = [entry.name for entry in p.iterdir() if entry.name.rstrip(' .').casefold() == part.casefold()]
+        require(names == [part], 'MISSING_OR_ALIASED_PATH:' + rel)
         p = p / part
         require(not p.is_symlink(), 'SYMLINK_PATH')
     require(p.is_file() and p.stat().st_size <= limit, 'MISSING_OR_OVERSIZED_FILE')
@@ -87,7 +114,7 @@ def hashes(obj):
     for k, v in obj.items():
         path_name(k)
         hash_value(v)
-    require(len({k.casefold() for k in obj}) == len(obj), 'CASE_ALIAS_PATH')
+    portable_paths(obj)
     return obj
 
 
@@ -122,6 +149,8 @@ def verify_archive(archive, anchor, *, allow_draft=False):
     prefix = 'mads-standard-v' + anchor['version'] + '/'
     metadata = {'RELEASE-MANIFEST.json', 'SHA256SUMS.txt'}
     require(not {k.casefold() for k in metadata}.intersection(k.casefold() for k in expected), 'RESERVED_PATH')
+    hashes(expected)
+    portable_paths(list(expected) + sorted(metadata))
     with zipfile.ZipFile(BytesIO(raw)) as z:
         infos = z.infolist()
         names = [i.filename for i in infos]
@@ -150,7 +179,7 @@ def verify_archive(archive, anchor, *, allow_draft=False):
 
 def verify_source(root, anchor):
     require(anchor['draft'] is False, 'DRAFT_NOT_ADOPTABLE')
-    for rel, digest in anchor['files_sha256'].items():
+    for rel, digest in hashes(anchor['files_sha256']).items():
         require(sha(file_bytes(root, rel)) == digest, 'SOURCE_HASH_MISMATCH:' + rel)
     return {'source': 'PASS', 'files_checked': len(anchor['files_sha256']), 'scope': 'ANCHORED_REQUIRED_FILES_ONLY'}
 
@@ -177,6 +206,7 @@ def verify_evidence(repo, artifact_root, expected, receipt):
     hash_value(receipt['inputs_sha256'])
     locks = receipt['locks_sha256']
     require(type(locks) is dict, 'LOCK_MAP_REQUIRED')
+    portable_paths(locks)
     for rel, digest in locks.items():
         path_name(rel)
         require(sha(git(repo, 'show', head + ':' + rel)) == hash_value(digest), 'LOCK_MISMATCH:' + rel)
@@ -191,6 +221,7 @@ def scope_list(value):
         require(type(item) is str, 'BAD_SCOPE_TYPE')
         path_name(item[:-3] if item.endswith('/**') else item)
     require(len(value) == len(set(value)), 'DUPLICATE_SCOPE')
+    portable_paths([item[:-3] if item.endswith('/**') else item for item in value], file_set=False)
     return value
 
 
@@ -208,6 +239,8 @@ def verify_scope(registry, lease, order, task, changed, forbidden=()):
         require(all(any(covers(p, c) for p in outer) for c in inner), 'SCOPE_EXPANSION')
     require(not any(covers(d, c) or covers(c, d) for d in denies for c in levels[-1]), 'FORBIDDEN_SCOPE_INTERSECTION')
     require(type(changed) is list, 'CHANGED_PATHS_REQUIRED')
+    portable_paths(changed)
+    portable_paths([item[:-3] if item.endswith('/**') else item for level in levels + [denies, changed] for item in level], file_set=False)
     for rel in changed:
         path_name(rel)
         require(any(covers(p, rel) for p in levels[-1]) and not any(covers(d, rel) for d in denies), 'OUT_OF_SCOPE:' + rel)
@@ -220,6 +253,9 @@ def verify_projection(root, anchor, projection):
     require(projection['schema'] == 'mads.release-projection.v1' and projection['release_source_commit'] == anchor['source_commit'], 'PROJECTION_RELEASE_MISMATCH')
     mapping = projection['paths']
     require(type(mapping) is dict and bool(mapping), 'PROJECTION_MAP_REQUIRED')
+    hashes(anchor['files_sha256'])
+    portable_paths(mapping)
+    portable_paths(mapping.values())
     targets = []
     for upstream, local in mapping.items():
         path_name(upstream)
@@ -247,6 +283,10 @@ def changed_paths(repo, base, head):
             result[rel] = (mode, kind, oid)
         return result
     before, after = entries(base), entries(head)
+    portable_paths(before)
+    portable_paths(after)
+    # Deny case-only transitions too: a mixed checkout or delta restore is ambiguous.
+    portable_paths(before.keys() | after.keys(), file_set=False)
     paths = []
     for rel in sorted(before.keys() | after.keys()):
         if before.get(rel) == after.get(rel):
