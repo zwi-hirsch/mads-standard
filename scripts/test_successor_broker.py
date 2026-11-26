@@ -111,6 +111,23 @@ class BrokerTests(unittest.TestCase):
         with self.assertRaises(subprocess.CalledProcessError):
             atomic(self.repo,{SRC:self.old},{PTR:(self.old,self.old),'refs/heads/test-new':(ZERO,self.head)})
         with self.assertRaises(subprocess.CalledProcessError): oid(self.repo,'refs/heads/test-new')
+    def test_retry_after_stop_drift(self):
+        self.runreq()
+        previous=oid(self.repo,IN)
+        late=commit(self.repo,previous,'coordination/messages/STOP.json',{})
+        git(self.repo,'update-ref',IN,late,previous)
+        self.denied()
+    def test_activate_ledger_changed(self):
+        a=self.ack()
+        late=commit(self.repo,self.head,'ledger.json',{'tasks':[]})
+        git(self.repo,'update-ref',MAIN,late,self.head)
+        a['guards'][MAIN]=late
+        self.denied(a)
+    def test_existing_immutable_mail(self):
+        late=commit(self.repo,self.head,'coordination/messages/MADS-STOP-'+self.req['id']+'.json',{})
+        git(self.repo,'update-ref',IN,late,self.head)
+        self.req['inbox_tip']=late
+        self.denied()
     def test_wrong_lock(self): self.denied(dict(self.req,lock_blobs={'ledger.json':'0'*40}))
     def test_duplicate_json(self):
         with self.assertRaises(ValueError): parse(b'{"a":1,"a":2}')

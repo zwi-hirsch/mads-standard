@@ -66,6 +66,11 @@ def commit(repo, parent, path, obj):
         return git(repo, 'commit-tree', tree, '-p', parent, '-m', f'MADS successor {path}').decode().strip()
 
 
+def append_mail(repo, parent, path, obj):
+    require(not git(repo, 'ls-tree', parent, '--', path), 'immutable mail already exists')
+    return commit(repo, parent, path, obj)
+
+
 def atomic(repo, checks, updates):
     require(not set(checks) & set(updates), 'overlapping refs')
     lines = ['start']
@@ -129,6 +134,7 @@ def transact(repo, policy, request, now):
         require(oid(repo, 'refs/heads/' + status['source_branch']) == status['source_head'], 'source drift')
         for ref, expected in request['guards'].items():
             require(oid(repo, ref) == expected, 'guard drift after transaction')
+        require(oid(repo, inbox) == status['verified_inbox_tip'], 'inbox drift after transaction')
         require(oid(repo, status['prior_status_ref']) == status['prior_status_head'], 'prior revoke drift')
         prior = parse(read(repo, status['prior_status_head'], 'sessions/onboarding.json'))
         require(oid(repo, 'refs/heads/' + prior['source_branch']) == status['prior_source_head'], 'late predecessor write')
@@ -181,9 +187,10 @@ def transact(repo, policy, request, now):
                         last_request_sha256=request_hash, upgrade_hold=True,
                         github_credential_revocation_verified=False, unpublished_work='UNKNOWN',
                         **{k: False for k in DENY}))
+        mail = append_mail(repo, incoming, f'coordination/messages/MADS-STOP-{rid}.json', revoked)
+        mail = append_mail(repo, mail, f'coordination/messages/MADS-SESSION-START-{rid}.json', new)
+        new['verified_inbox_tip'] = mail
         ntip = commit(repo, rtip, 'sessions/onboarding.json', new)
-        mail = commit(repo, incoming, f'coordination/messages/MADS-STOP-{rid}.json', revoked)
-        mail = commit(repo, mail, f'coordination/messages/MADS-SESSION-START-{rid}.json', new)
         atomic(repo, checks, {ptr: (current, ntip), oldref: (current, rtip),
                                newref: (ZERO, ntip), newsource: (ZERO, head), inbox: (incoming, mail)})
         return {'state': new['state'], 'status': ntip, 'reused': False}
@@ -194,6 +201,9 @@ def transact(repo, policy, request, now):
     require(status['lock_blobs'] == request['lock_blobs'], 'offered lock mismatch')
     require(time(status['expires_utc']) > now and time(status['manual_monitoring_expires_utc']) > now,
             'expired offer')
+    require(status['ledger_ref'] in guards, 'offered ledger not guarded')
+    ledger = read(repo, guards[status['ledger_ref']], status['ledger_path'])
+    require(hashlib.sha256(ledger).hexdigest() == status['ledger_sha256'], 'offered ledger drift')
     prior = status['prior_status_ref']
     require(oid(repo, prior) == status['prior_status_head'], 'prior revoke drift')
     old = parse(read(repo, status['prior_status_head'], 'sessions/onboarding.json'))
@@ -205,7 +215,8 @@ def transact(repo, policy, request, now):
     require(ack == {'offer_id': status['offer_id'], 'session_id': status['session_id'],
                     'status_tip': current, 'source_head': head, 'source_tree': tree,
                     'ledger_sha256': status['ledger_sha256'], 'decision': 'ACK'}, 'ACK mismatch')
-    active = dict(status, state='ACTIVE', source_write_authorized=True, last_request_sha256=request_hash)
+    active = dict(status, state='ACTIVE', source_write_authorized=True,
+                  last_request_sha256=request_hash, verified_inbox_tip=incoming)
     atip = commit(repo, current, 'sessions/onboarding.json', active)
     atomic(repo, {**checks, oldsource: status['prior_source_head'], inbox: incoming, prior: status['prior_status_head']},
            {ptr: (current, atip), oldref: (current, atip)})
