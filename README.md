@@ -74,3 +74,7 @@ Section 31 requires a resumable Git publication journal, idempotent readback, re
 ### v2.0.6 release-ready source
 
 The consolidated source is approved for packaging. The exact v2.0.6 candidate tree passed the canonical Python draft-export and manifest verification workflow (PR #10, run 45605511376). A separate downloadable [verified draft archive](dist/mads-standard-v2.0.6-draft.zip) and [SHA-256](dist/mads-standard-v2.0.6-draft.zip.sha256) were committed in PR #11 using an alternate ZIP_STORED exporter. Neither candidate artifact is the immutable published release. The final non-draft archive must be built and verified from the release-ready source, with the exact tag and release assets checked independently. Stable published version remains v2.0.2 until that verification succeeds.
+
+## v2.0.7 candidate — automatic manual-session succession
+
+The latest published release observed at candidate preparation is v2.0.6. §32 introduces an Owner-delegated, authenticated, atomic succession broker. The [reference implementation](scripts/successor_broker.py), [tests](scripts/test_successor_broker.py) and [installation template](templates/mads/v2/SUCCESSOR-BROKER.example.md) are source candidates only. No installed service or public v2.0.7 release is implied; manual §29 remains the fallback. Older README release notes are historical.

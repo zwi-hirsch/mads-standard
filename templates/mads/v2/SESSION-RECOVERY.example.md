@@ -26,3 +26,6 @@ Recover current Git blocker/dependency ledger, exact unresolved obligations, rec
 
 ## Interrupted publication (§31)
 Recover orphaned source/evidence and transaction journal against actual remote refs; compare exact report bytes and status. If report missing/partial, use new unique recovery/correction report with original transaction reference; never invent missing evidence or overwrite old mail. Validate new STOP/lease/expiry before further writes. Source and evidence already verified do not require rerun merely because the final report is missing.
+
+## Owner-preauthorized automatic recovery (§32)
+When an independently accepted broker is installed for this role, use the authenticated replacement launch and exact offer/ACK activation transaction in [SUCCESSOR-BROKER.example.md](SUCCESSOR-BROKER.example.md). Otherwise follow §29 manually. No self-issued epoch, no external worker replacement, no automatic source rights from chat initialization.
