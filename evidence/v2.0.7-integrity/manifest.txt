@@ -1,0 +1,16 @@
+MADS v2.0.7 candidate independent local execution record (Owner run; not independent reviewer)
+PR16 source HEAD 151b4b4695df75ff1d773b05b54e0327b585153f
+TREE 4e728c51cf56ddd796598e263651b6fc27c020b1
+Actual command: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+Python 3.13.5; Git 2.47.3; Linux isolated local container.
+Test result: 43 passed, RC0. 17 verification/packaging + 26 broker (19 prior,7 added). Exact local and remote Git blob comparisons for six Python files.
+Git blob IDs / SHA256:
+71a55e1224cf3f59ea6759ac47e3d90607d10077 6e77838255899fb84922fddcaeb528c7d8953ea34939b31dad0576dd318a8459 scripts/build_release.py
+30b65f65d3f9621605e210e02994a8ec3bd73b3b 04208d330bec67e3a547e26069de2305af6f8385bc66f8c25f2f9ba2bd5318d4 scripts/check_release.py
+27f69b23669757650002f5ece6b17ea648ba6e97 3e542afddc597406d3cbd9b2500306d2f493f38b3c56503f9c1544a8386a379e scripts/mads_verify.py
+3643d9eb025877bf2fc683c0796ea26304a33a3d e8f4aa6af82b5f869ccef1aedf5014aa424f284d66f03bfa2a8526386e4b5be9 scripts/successor_broker.py
+2addf65b9c3357765319ee606d1c14d021bbb444 940f9a6ccdd6658521040ef2cdc1318a3ab93a74709e1cadec9a74c8974f9bba scripts/test_mads_verify.py
+6e131e34c3bc053c85a0ac7e9943f9a171aa6e43 1ddd0bebfadf46b7b1158a363be9be560da17daa89f9f452ebb38d88ce5e6304 scripts/test_successor_broker.py
+4b43bc7c2cf27c1cd509d8b29e994f77971c1baa 43a96d0b0855eef0cd8cf4c04617a9526126d13cbd30d30e5331360a3255e91e raw.log
+573541ac9702dd3969c9bc859d2b91ec1f7e6e56 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa raw.rc
+Scope: real unit tests and disposable Git repos; exporter and check_release run with synthetic normative content and Git history, not full public checkout. Valid ssh-keygen signature path NOT_RUN (ssh-keygen absent). GitHub Actions and exact full release build NOT_RUN at observation; no independent reviewer acceptance, protected deployed trust anchor, canonical remote transaction, real fencing, release or adoption. No project data or credentials. Separate evidence branch, not distribution.

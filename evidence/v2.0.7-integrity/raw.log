@@ -1,0 +1,48 @@
+test_ancestor_symlink (test_mads_verify.VerifyTests.test_ancestor_symlink) ... ok
+test_arbitrary_matching_bytes_not_zip (test_mads_verify.VerifyTests.test_arbitrary_matching_bytes_not_zip) ... ok
+test_draft_denied (test_mads_verify.VerifyTests.test_draft_denied) ... ok
+test_duplicate_zip (test_mads_verify.VerifyTests.test_duplicate_zip) ... ok
+test_evidence (test_mads_verify.VerifyTests.test_evidence) ... ok
+test_joint_tampering (test_mads_verify.VerifyTests.test_joint_tampering) ... ok
+test_json_types (test_mads_verify.VerifyTests.test_json_types) ... ok
+test_path_aliases (test_mads_verify.VerifyTests.test_path_aliases) ... ok
+test_projection (test_mads_verify.VerifyTests.test_projection) ... ok
+test_real_git_changed_paths (test_mads_verify.VerifyTests.test_real_git_changed_paths) ... ok
+test_release_pipeline_fixture (test_mads_verify.VerifyTests.test_release_pipeline_fixture) ... ok
+test_required_substitution (test_mads_verify.VerifyTests.test_required_substitution) ... ok
+test_scope (test_mads_verify.VerifyTests.test_scope) ... ok
+test_valid_source_and_zip (test_mads_verify.VerifyTests.test_valid_source_and_zip) ... ok
+test_zip_extra_traversal (test_mads_verify.VerifyTests.test_zip_extra_traversal) ... ok
+test_zip_self_consistent_wrong_payload (test_mads_verify.VerifyTests.test_zip_self_consistent_wrong_payload) ... ok
+test_zip_symlink (test_mads_verify.VerifyTests.test_zip_symlink) ... ok
+test_activate_ledger_changed (test_successor_broker.BrokerTests.test_activate_ledger_changed) ... ok
+test_ambiguous (test_successor_broker.BrokerTests.test_ambiguous) ... ok
+test_atomic_race (test_successor_broker.BrokerTests.test_atomic_race) ... ok
+test_bad_ledger (test_successor_broker.BrokerTests.test_bad_ledger) ... ok
+test_boolean_epoch (test_successor_broker.BrokerTests.test_boolean_epoch) ... ok
+test_cli_structured_bad_json (test_successor_broker.BrokerTests.test_cli_structured_bad_json) ... ok
+test_conflict (test_successor_broker.BrokerTests.test_conflict) ... ok
+test_duplicate_json (test_successor_broker.BrokerTests.test_duplicate_json) ... ok
+test_duplicate_offer (test_successor_broker.BrokerTests.test_duplicate_offer) ... ok
+test_existing_immutable_mail (test_successor_broker.BrokerTests.test_existing_immutable_mail) ... ok
+test_external (test_successor_broker.BrokerTests.test_external) ... ok
+test_inbox_drift (test_successor_broker.BrokerTests.test_inbox_drift) ... ok
+test_late_old_write (test_successor_broker.BrokerTests.test_late_old_write) ... ok
+test_malformed_scope (test_successor_broker.BrokerTests.test_malformed_scope) ... ok
+test_missing_ack (test_successor_broker.BrokerTests.test_missing_ack) ... ok
+test_no_stop_review (test_successor_broker.BrokerTests.test_no_stop_review) ... ok
+test_non_object_and_nonfinite_json (test_successor_broker.BrokerTests.test_non_object_and_nonfinite_json) ... ok
+test_offer_activation_and_retry (test_successor_broker.BrokerTests.test_offer_activation_and_retry) ... ok
+test_offer_retry (test_successor_broker.BrokerTests.test_offer_retry) ... ok
+test_retry_after_stop_drift (test_successor_broker.BrokerTests.test_retry_after_stop_drift) ... ok
+test_stale (test_successor_broker.BrokerTests.test_stale) ... ok
+test_symbolic_guard (test_successor_broker.BrokerTests.test_symbolic_guard) ... ok
+test_unapproved_scope (test_successor_broker.BrokerTests.test_unapproved_scope) ... ok
+test_unknown_status_schema (test_successor_broker.BrokerTests.test_unknown_status_schema) ... ok
+test_wrong_lock (test_successor_broker.BrokerTests.test_wrong_lock) ... ok
+test_wrong_role (test_successor_broker.BrokerTests.test_wrong_role) ... ok
+
+----------------------------------------------------------------------
+Ran 43 tests in 10.885s
+
+OK
