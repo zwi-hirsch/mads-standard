@@ -12,6 +12,7 @@ from pathlib import Path
 import re
 import sys
 import zipfile
+from mads_verify import file_bytes
 
 ROOT = Path(__file__).resolve().parent.parent
 def project_version():
@@ -22,6 +23,12 @@ def project_version():
             if re.fullmatch("[0-9]+([.][0-9]+){2}",value):
                 return value
     raise SystemExit("INVALID_VERSION: require semver in MADS-VERSION.yaml")
+
+def project_sections():
+    values = re.findall(r'^normative_sections: ([1-9][0-9]*)$', (ROOT / 'MADS-VERSION.yaml').read_text(encoding='utf-8'), re.M)
+    if len(values) != 1:
+        raise SystemExit('INVALID_NORMATIVE_SECTION_COUNT')
+    return int(values[0])
 
 VERSION = project_version()
 CORE = "MULTI-AGENT-DEVELOPMENT-SYSTEM.md"
@@ -44,6 +51,9 @@ REQUIRED = [
     "scripts/successor_broker.py",
     "scripts/test_successor_broker.py",
     "scripts/build_release.py",
+    "scripts/mads_verify.py",
+    "scripts/test_mads_verify.py",
+    "scripts/check_release.py",
 ]
 FORBIDDEN = [
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
@@ -77,11 +87,12 @@ def main():
     if not args.draft and "STAGED_NOT_PUBLISHED" in (ROOT/"MADS-VERSION.yaml").read_text(encoding="utf-8"):
         raise SystemExit("VERSION_NOT_FINAL: update MADS-VERSION.yaml status before public release")
     manifest = {}
+    payload = {}
     for item in files:
         rel = item.relative_to(ROOT).as_posix()
         if item.stat().st_size > 4_000_000:
             raise SystemExit(f"OVERSIZED_FILE: {rel}")
-        data = item.read_bytes()
+        data = file_bytes(ROOT, rel)
         try:
             txt = data.decode("utf-8")
         except UnicodeDecodeError:
@@ -92,11 +103,11 @@ def main():
         if rel.startswith(("memory/", "evidence/", "coord/", ".git/", "production/")):
             raise SystemExit(f"FORBIDDEN_PROJECT_DIRECTORY: {rel}")
         manifest[rel] = digest(data)
+        payload[rel] = data
     doc = (ROOT / CORE).read_text(encoding="utf-8")
     headings = [int(m.group(1)) for m in re.finditer(r"^## (\d+)\.", doc, re.M)]
-    if headings != list(range(1, 33)):
-        raise SystemExit("INVALID_STANDARD_SECTIONS: expected Sections 1 through 32")
-    payload = {rel: (ROOT / rel).read_bytes() for rel in manifest}
+    if headings != list(range(1, project_sections() + 1)):
+        raise SystemExit("INVALID_STANDARD_SECTIONS")
     release_manifest = json.dumps({
         "schema": "mads.release-manifest.v1",
         "version": VERSION,

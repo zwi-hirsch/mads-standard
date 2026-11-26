@@ -1,7 +1,5 @@
-name: Verify MADS v2.0.0 source-bound ZIP
+name: Historical MADS v2.0.0 ZIP audit (not current release gate)
 on:
-  pull_request:
-    paths: ['dist/**', '.github/workflows/verify-mads-zip.yml']
   workflow_dispatch:
 permissions:
   contents: read

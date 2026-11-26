@@ -25,26 +25,14 @@ jobs:
         run: |
           set -euo pipefail
           grep -Eq '^publication_status: (RELEASE_READY|RELEASED)$' MADS-VERSION.yaml
-          python3 -m py_compile scripts/build_release.py
+          python3 -m unittest discover -s scripts -p 'test_*.py' -v
           python3 scripts/build_release.py --out "$RUNNER_TEMP/mads-build"
-          VERSION=$(python3 -c 'import runpy; print(runpy.run_path("scripts/build_release.py")["VERSION"])')
+          VERSION=$(sed -n 's/^version: "\([0-9.]*\)"$/\1/p' MADS-VERSION.yaml)
+          test -n "$VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          (cd "$RUNNER_TEMP/mads-build" && sha256sum -c "mads-standard-v${VERSION}.zip.sha256")
-          python3 - <<'PY'
-          import hashlib, json, os, zipfile
-          from pathlib import Path
-          paths = list((Path(os.environ["RUNNER_TEMP"])/"mads-build").glob("*.zip"))
-          assert len(paths) == 1
-          with zipfile.ZipFile(paths[0]) as z:
-              assert z.testzip() is None
-              prefix = z.namelist()[0].split("/")[0]+"/"
-              m = json.loads(z.read(prefix+"RELEASE-MANIFEST.json"))
-              assert m["draft"] is False
-              for rel, expected in m["files_sha256"].items():
-                  assert hashlib.sha256(z.read(prefix+rel)).hexdigest() == expected, rel
-                  assert Path(rel).read_bytes() == z.read(prefix+rel), rel
-          print("RELEASE_ZIP_INDEPENDENT_VERIFY_PASS")
-          PY
+          ZIP="mads-standard-v$VERSION.zip"
+          (cd "$RUNNER_TEMP/mads-build" && sha256sum -c "$ZIP.sha256")
+          python3 scripts/check_release.py --archive "$RUNNER_TEMP/mads-build/$ZIP" --anchor-out "$RUNNER_TEMP/mads-build/$ZIP.trust.json"
       - name: Publish exact immutable tag and release assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -56,7 +44,7 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Existing release must be verified, never overwritten"
           else
-            gh release create "$TAG" "$RUNNER_TEMP/mads-build/$ZIP" "$RUNNER_TEMP/mads-build/$ZIP.sha256" --target "$GITHUB_SHA" --title "MADS Standard $TAG" --notes "Git-native MADS, normative Sections 1–31: immediate admission, Git-only handoff, abrupt context recovery, proactive blocker ownership and interrupted REPORT recovery. Apache-2.0." --latest
+            gh release create "$TAG" "$RUNNER_TEMP/mads-build/$ZIP" "$RUNNER_TEMP/mads-build/$ZIP.sha256" "$RUNNER_TEMP/mads-build/$ZIP.trust.json" --target "$GITHUB_SHA" --title "MADS Standard $TAG" --notes "Git-native MADS. Independently verify the release trust manifest and approve its SHA-256 outside agent-writable refs before adoption. Apache-2.0." --latest
           fi
           gh release view "$TAG" --json tagName,isDraft,isPrerelease,url,assets
           test "$(git ls-remote https://github.com/zwi-hirsch/mads-standard.git "refs/tags/$TAG" | cut -f1)" = "$GITHUB_SHA"
@@ -66,4 +54,7 @@ jobs:
           curl -fsSL "https://github.com/zwi-hirsch/mads-standard/releases/download/$TAG/$ZIP.sha256" -o "$ZIP.sha256"
           sha256sum -c "$ZIP.sha256"
           cmp "$ZIP" "$RUNNER_TEMP/mads-build/$ZIP"
+          curl -fsSL "https://github.com/zwi-hirsch/mads-standard/releases/download/$TAG/$ZIP.trust.json" -o "$ZIP.trust.json"
+          cmp "$ZIP.trust.json" "$RUNNER_TEMP/mads-build/$ZIP.trust.json"
+          sha256sum "$ZIP.trust.json"
           echo "PUBLIC_RELEASE_VERIFIED"

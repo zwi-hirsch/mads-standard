@@ -78,3 +78,7 @@ The consolidated source is approved for packaging. The exact v2.0.6 candidate tr
 ## v2.0.7 candidate — automatic manual-session succession
 
 The latest published release observed at candidate preparation is v2.0.6. §32 introduces an Owner-delegated, authenticated, atomic succession broker. The [reference implementation](scripts/successor_broker.py), [tests](scripts/test_successor_broker.py) and [installation template](templates/mads/v2/SUCCESSOR-BROKER.example.md) are source candidates only. No installed service or public v2.0.7 release is implied; manual §29 remains the fallback. Older README release notes are historical.
+
+### v2.0.7 candidate integrity gates
+
+The draft adds §33 and portable JSON/ZIP/source/evidence/scope checks. See scripts/mads_verify.py and scripts/check_release.py. Run the negative suite with python3 -m unittest discover -s scripts -p 'test_*.py' -v. The release trust manifest must be independently approved and its SHA-256 pinned outside the assessed writer's control; a locally generated manifest is not an independent trust root. No candidate ZIP or reference broker enables operational authority.

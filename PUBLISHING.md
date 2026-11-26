@@ -35,3 +35,7 @@ The **public standard requires no write/API key for reading**. The *new project*
 ## Limitations
 
 A GitHub connector with Contents write may create files in an **existing accessible** repository; repository creation, access-configuration changes, GitHub Release asset publication or branch protection administration may not be available through that connector. In that case the authorized human completes only those UI steps. Do not claim the repo is public or a release has shipped until these checks really succeed.
+
+### v2.0.7 trust-manifest gate
+
+Build only the reviewed exact Git source. Run the reference negative suite and scripts/check_release.py against the built ZIP; it derives the mandatory file hashes from Git, not from ZIP metadata, and emits a separate release trust JSON. Publish the trust JSON alongside the ZIP and checksum sidecar only for a reviewed non-draft release. Independently obtain and verify all three assets; approve the trust-manifest SHA-256 in a protected out-of-band channel. The release workflow and a self-generated hash alone are not independent approval. Never rewrite existing tags or replace historical assets. Candidate and current-release verification are separate from historical ZIP audits.
