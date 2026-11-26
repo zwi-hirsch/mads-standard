@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'MADS-VERSION.yaml'
+      - '.github/workflows/release-v2.yml'
   workflow_dispatch:
 permissions:
   contents: write
@@ -12,95 +13,57 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
-    if: github.repository == 'zwi-hirsch/mads-standard'
+    if: github.repository == 'zwi-hirsch/mads-standard' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout exact source
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Inspect publication status
-        id: publication
+      - name: Verify and package approved release source
+        id: package
         run: |
-          if grep -q '^publication_status: RELEASED
-        run: |
+          set -euo pipefail
+          grep -Eq '^publication_status: (RELEASE_READY|RELEASED)$' MADS-VERSION.yaml
           python3 -m py_compile scripts/build_release.py
           python3 scripts/build_release.py --out "$RUNNER_TEMP/mads-build"
           VERSION=$(python3 -c 'import runpy; print(runpy.run_path("scripts/build_release.py")["VERSION"])')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           (cd "$RUNNER_TEMP/mads-build" && sha256sum -c "mads-standard-v${VERSION}.zip.sha256")
           python3 - <<'PY'
-          import zipfile
+          import hashlib, json, os, zipfile
           from pathlib import Path
-          import os
-          import glob
-          matches=glob.glob(os.environ["RUNNER_TEMP"]+"/mads-build/mads-standard-v*.zip")
-          assert len(matches)==1,matches
-          p=Path(matches[0])
-          with zipfile.ZipFile(p) as z:
+          paths = list((Path(os.environ["RUNNER_TEMP"])/"mads-build").glob("*.zip"))
+          assert len(paths) == 1
+          with zipfile.ZipFile(paths[0]) as z:
               assert z.testzip() is None
-              assert len(z.namelist()) >= 18
-              assert any(x.endswith("/LICENSE") for x in z.namelist())
+              prefix = z.namelist()[0].split("/")[0]+"/"
+              m = json.loads(z.read(prefix+"RELEASE-MANIFEST.json"))
+              assert m["draft"] is False
+              for rel, expected in m["files_sha256"].items():
+                  assert hashlib.sha256(z.read(prefix+rel)).hexdigest() == expected, rel
+                  assert Path(rel).read_bytes() == z.read(prefix+rel), rel
           print("RELEASE_ZIP_INDEPENDENT_VERIFY_PASS")
           PY
-      - name: Publish immutable tag and release assets
-        if: steps.publication.outputs.released == 'true'
+      - name: Publish exact immutable tag and release assets
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.package.outputs.version }}
         run: |
-          VERSION=$(python3 -c 'import runpy; print(runpy.run_path("scripts/build_release.py")["VERSION"])')
-          if gh release view "v${VERSION}" >/dev/null 2>&1; then
-            echo "RELEASE_ALREADY_EXISTS: immutable v${VERSION} already published"
-            exit 0
-          fi
-          gh release create "v${VERSION}" \
-            "$RUNNER_TEMP/mads-build/mads-standard-v${VERSION}.zip" \
-            "$RUNNER_TEMP/mads-build/mads-standard-v${VERSION}.zip.sha256" \
-            --target "$GITHUB_SHA" \
-            --title "MADS Standard v${VERSION}" \
-            --notes "MADS immediate source admission, Git-only artifact handoff and abrupt-context recovery: Sections 18, 27–31; unchanged secret/production boundaries and Apache-2.0." \
-            --latest
-          gh release view "v${VERSION}" --json tagName,isDraft,isPrerelease,url,assets
- MADS-VERSION.yaml; then
-            echo 'released=true' >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          TAG="v$VERSION"
+          ZIP="mads-standard-$TAG.zip"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Existing release must be verified, never overwritten"
           else
-            echo 'released=false' >> "$GITHUB_OUTPUT"
-            echo 'STAGED_NOT_PUBLISHED: no release or tag will be created'
+            gh release create "$TAG" "$RUNNER_TEMP/mads-build/$ZIP" "$RUNNER_TEMP/mads-build/$ZIP.sha256" --target "$GITHUB_SHA" --title "MADS Standard $TAG" --notes "Git-native MADS, normative Sections 1–31: immediate admission, Git-only handoff, abrupt context recovery, proactive blocker ownership and interrupted REPORT recovery. Apache-2.0." --latest
           fi
-      - name: Check executable release build
-        if: steps.publication.outputs.released == 'true'
-        run: |
-          python3 -m py_compile scripts/build_release.py
-          python3 scripts/build_release.py --out "$RUNNER_TEMP/mads-build"
-          VERSION=$(python3 -c 'import runpy; print(runpy.run_path("scripts/build_release.py")["VERSION"])')
-          (cd "$RUNNER_TEMP/mads-build" && sha256sum -c "mads-standard-v${VERSION}.zip.sha256")
-          python3 - <<'PY'
-          import zipfile
-          from pathlib import Path
-          import os
-          import glob
-          matches=glob.glob(os.environ["RUNNER_TEMP"]+"/mads-build/mads-standard-v*.zip")
-          assert len(matches)==1,matches
-          p=Path(matches[0])
-          with zipfile.ZipFile(p) as z:
-              assert z.testzip() is None
-              assert len(z.namelist()) >= 18
-              assert any(x.endswith("/LICENSE") for x in z.namelist())
-          print("RELEASE_ZIP_INDEPENDENT_VERIFY_PASS")
-          PY
-      - name: Publish immutable tag and release assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION=$(python3 -c 'import runpy; print(runpy.run_path("scripts/build_release.py")["VERSION"])')
-          if gh release view "v${VERSION}" >/dev/null 2>&1; then
-            echo "RELEASE_ALREADY_EXISTS: immutable v${VERSION} already published"
-            exit 0
-          fi
-          gh release create "v${VERSION}" \
-            "$RUNNER_TEMP/mads-build/mads-standard-v${VERSION}.zip" \
-            "$RUNNER_TEMP/mads-build/mads-standard-v${VERSION}.zip.sha256" \
-            --target "$GITHUB_SHA" \
-            --title "MADS Standard v${VERSION}" \
-            --notes "MADS immediate source admission, Git-only artifact handoff and abrupt-context recovery: Sections 18, 27–29; unchanged secret/production boundaries and Apache-2.0." \
-            --latest
-          gh release view "v${VERSION}" --json tagName,isDraft,isPrerelease,url,assets
+          gh release view "$TAG" --json tagName,isDraft,isPrerelease,url,assets
+          test "$(git ls-remote https://github.com/zwi-hirsch/mads-standard.git "refs/tags/$TAG" | cut -f1)" = "$GITHUB_SHA"
+          mkdir -p "$RUNNER_TEMP/mads-public"
+          cd "$RUNNER_TEMP/mads-public"
+          curl -fsSL "https://github.com/zwi-hirsch/mads-standard/releases/download/$TAG/$ZIP" -o "$ZIP"
+          curl -fsSL "https://github.com/zwi-hirsch/mads-standard/releases/download/$TAG/$ZIP.sha256" -o "$ZIP.sha256"
+          sha256sum -c "$ZIP.sha256"
+          cmp "$ZIP" "$RUNNER_TEMP/mads-build/$ZIP"
+          echo "PUBLIC_RELEASE_VERIFIED"
