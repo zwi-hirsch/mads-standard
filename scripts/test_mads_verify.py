@@ -7,8 +7,8 @@ import unittest
 import warnings
 import zipfile
 from pathlib import Path
-from mads_verify import (anchored, git, release_anchor, sha, strict_json, verify_archive,
-                         verify_evidence, verify_scope, verify_source)
+from mads_verify import (anchored, changed_paths, git, release_anchor, sha, strict_json, verify_archive,
+                         verify_evidence, verify_projection, verify_scope, verify_source)
 
 
 def encode(obj):
@@ -67,7 +67,7 @@ class VerifyTests(unittest.TestCase):
         with self.assertRaises(ValueError): verify_source(self.root,self.anchor)
 
     def test_json_types(self):
-        for raw in (b'[]',b'null',b'1',b'"x"',b'true',b'{"x":NaN}',b'{"x":Infinity}',b'{"x":1,"x":2}',b'\xff'):
+        for raw in (b'[]',b'null',b'1',b'"x"',b'true',b'{"x":NaN}',b'{"x":Infinity}',b'{"x":1e999}',b'{"x":1,"x":2}',b'\xff'):
             with self.subTest(raw=raw), self.assertRaises(ValueError): strict_json(raw)
 
     def test_arbitrary_matching_bytes_not_zip(self):
@@ -109,6 +109,26 @@ class VerifyTests(unittest.TestCase):
         self.assertEqual(verify_scope(['src/**'],['src/commerce/**'],['src/commerce/**'],['src/commerce/a.py'],['src/commerce/a.py'])['scope'],'PASS')
         for task,changed,deny in ((['src/**'],['src/a'],()),(['src/commerce/**'],['src/other/a'],()),(['src/commerce/**'],[],['src/commerce/private/**']),(['src/../a'],[],()),(['src/*'],[],()),(['src/commerce/**'],['src/commerceevil/a'],())):
             with self.subTest(task=task,changed=changed),self.assertRaises(ValueError): verify_scope(['src/**'],['src/commerce/**'],['src/commerce/**'],task,changed,deny)
+
+    def test_projection(self):
+        projection=dict(schema='mads.release-projection.v1',release_source_commit='1'*40,paths={'STANDARD.md':'STANDARD.md','templates/required.md':'templates/required.md'})
+        self.assertEqual(verify_projection(self.root,self.anchor,projection)['files_checked'],2)
+        with self.assertRaises(ValueError): verify_projection(self.root,self.anchor,dict(projection,release_source_commit='2'*40))
+        with self.assertRaises(ValueError): verify_projection(self.root,self.anchor,dict(projection,paths={'foreign.md':'STANDARD.md'}))
+        (self.root/'STANDARD.md').write_bytes(b'changed')
+        with self.assertRaises(ValueError): verify_projection(self.root,self.anchor,projection)
+
+    def test_real_git_changed_paths(self):
+        subprocess.run(['git','init','-q',str(self.root)],check=True)
+        git(self.root,'config','user.name','TEST');git(self.root,'config','user.email','test@example.invalid')
+        git(self.root,'add','STANDARD.md');git(self.root,'commit','-qm','one')
+        base=git(self.root,'rev-parse','HEAD').decode().strip()
+        git(self.root,'mv','STANDARD.md','renamed.md');git(self.root,'commit','-qm','rename')
+        head=git(self.root,'rev-parse','HEAD').decode().strip()
+        self.assertEqual(set(changed_paths(self.root,base,head)),{'STANDARD.md','renamed.md'})
+        (self.root/'link').symlink_to('renamed.md');git(self.root,'add','link');git(self.root,'commit','-qm','symlink')
+        bad=git(self.root,'rev-parse','HEAD').decode().strip()
+        with self.assertRaisesRegex(ValueError,'UNSAFE_GIT_FILE_MODE'): changed_paths(self.root,head,bad)
 
     def test_evidence(self):
         subprocess.run(['git','init','-q',str(self.root)],check=True)

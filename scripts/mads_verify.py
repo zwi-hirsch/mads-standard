@@ -6,6 +6,8 @@ A PASS verifies bytes/bindings/scope, not execution, identity or production righ
 import argparse
 import hashlib
 import json
+import math
+import os
 import re
 import stat
 import subprocess
@@ -40,16 +42,21 @@ def strict_json(raw):
     def reject_constant(_):
         raise ValueError('NONFINITE_JSON')
 
+    def finite(value):
+        number = float(value)
+        require(math.isfinite(number), 'NONFINITE_JSON')
+        return number
+
     require(len(raw) <= MAX_JSON, 'JSON_TOO_LARGE')
     obj = json.loads(raw.decode('utf-8'), object_pairs_hook=unique,
-                     parse_constant=reject_constant)
+                     parse_constant=reject_constant, parse_float=finite)
     require(type(obj) is dict, 'JSON_OBJECT_REQUIRED')
     return obj
 
 
 def path_name(value):
     require(type(value) is str and bool(re.fullmatch(r'[A-Za-z0-9_.@+-]+(?:/[A-Za-z0-9_.@+-]+)*', value)), 'UNSAFE_PATH')
-    require(all(part not in ('.', '..', '.git') for part in value.split('/')), 'UNSAFE_PATH')
+    require(all(part.casefold() not in ('.', '..', '.git') and not part.endswith('.') for part in value.split('/')), 'UNSAFE_PATH')
     return value
 
 
@@ -148,7 +155,8 @@ def verify_source(root, anchor):
 
 
 def git(repo, *args):
-    return subprocess.run(['git', '-C', str(repo), *args], check=True,
+    env = dict(os.environ, GIT_NO_REPLACE_OBJECTS='1')
+    return subprocess.run(['git', '-C', str(repo), *args], check=True, env=env,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
 
 
@@ -192,6 +200,7 @@ def covers(parent, child):
 
 def verify_scope(registry, lease, order, task, changed, forbidden=()):
     levels = [scope_list(x) for x in (registry, lease, order, task)]
+    require(type(forbidden) in (list, tuple), 'BAD_FORBIDDEN_SCOPE')
     denies = scope_list(list(forbidden)) if forbidden else []
     for outer, inner in zip(levels, levels[1:]):
         require(all(any(covers(p, c) for p in outer) for c in inner), 'SCOPE_EXPANSION')
@@ -203,29 +212,67 @@ def verify_scope(registry, lease, order, task, changed, forbidden=()):
     return {'scope': 'PASS', 'write_authorized': False}
 
 
+def verify_projection(root, anchor, projection):
+    require(anchor['draft'] is False, 'DRAFT_NOT_ADOPTABLE')
+    exact_keys(projection, ('schema', 'release_source_commit', 'paths'))
+    require(projection['schema'] == 'mads.release-projection.v1' and projection['release_source_commit'] == anchor['source_commit'], 'PROJECTION_RELEASE_MISMATCH')
+    mapping = projection['paths']
+    require(type(mapping) is dict and bool(mapping), 'PROJECTION_MAP_REQUIRED')
+    targets = []
+    for upstream, local in mapping.items():
+        path_name(upstream)
+        path_name(local)
+        require(upstream in anchor['files_sha256'], 'UNKNOWN_UPSTREAM_PATH')
+        targets.append(local.casefold())
+        require(sha(file_bytes(root, local)) == anchor['files_sha256'][upstream], 'PROJECT_SOURCE_MISMATCH:' + local)
+    require(len(targets) == len(set(targets)), 'DUPLICATE_PROJECTION_TARGET')
+    return {'source': 'PASS', 'files_checked': len(mapping), 'scope': 'PROTECTED_PROJECT_PROJECTION_ONLY'}
+
+
+def changed_paths(repo, base, head):
+    for commit in (base, head):
+        require(git(repo, 'rev-parse', '--verify', commit + '^{commit}').decode().strip() == commit, 'COMMIT_MISMATCH')
+    git(repo, 'merge-base', '--is-ancestor', base, head)
+    raw = git(repo, 'diff', '--no-renames', '--raw', '-z', base, head).decode('utf-8').split('\0')[:-1]
+    require(len(raw) % 2 == 0, 'MALFORMED_GIT_DIFF')
+    paths = []
+    for meta, rel in zip(raw[::2], raw[1::2]):
+        parts = meta.split()
+        require(len(parts) == 5 and parts[0].startswith(':'), 'MALFORMED_GIT_DIFF')
+        require(parts[0][1:] in ('000000', '100644', '100755') and parts[1] in ('000000', '100644', '100755'), 'UNSAFE_GIT_FILE_MODE:' + rel)
+        paths.append(path_name(rel))
+    return paths
+
+
 def main(argv=None):
     p = argparse.ArgumentParser()
-    p.add_argument('mode', choices=['archive', 'source', 'evidence', 'scope'])
+    p.add_argument('mode', choices=['archive', 'source', 'projection', 'evidence', 'scope'])
     p.add_argument('--anchor', type=Path, required=True)
     p.add_argument('--anchor-sha256', required=True)
     p.add_argument('--archive', type=Path)
     p.add_argument('--root', type=Path, default=Path('.'))
     p.add_argument('--receipt', type=Path)
+    p.add_argument('--projection', type=Path)
+    p.add_argument('--projection-sha256')
     p.add_argument('--repo', type=Path, default=Path('.'))
     a = p.parse_args(argv)
     try:
         raw = a.anchor.read_bytes()
-        if a.mode in ('source', 'archive'):
+        if a.mode in ('source', 'archive', 'projection'):
             anchor = release_anchor(raw, a.anchor_sha256)
-            result = verify_source(a.root, anchor) if a.mode == 'source' else verify_archive(a.archive, anchor)
+            if a.mode == 'source':
+                result = verify_source(a.root, anchor)
+            elif a.mode == 'projection':
+                result = verify_projection(a.root, anchor, anchored(a.projection.read_bytes(), a.projection_sha256))
+            else:
+                result = verify_archive(a.archive, anchor)
         elif a.mode == 'evidence':
             result = verify_evidence(a.repo, a.root, anchored(raw, a.anchor_sha256), strict_json(a.receipt.read_bytes()))
         else:
             config = anchored(raw, a.anchor_sha256)
             exact_keys(config, ('registry', 'lease', 'order', 'task', 'forbidden', 'base', 'head'))
             base, head = oid_value(config['base']), oid_value(config['head'])
-            git(a.repo, 'merge-base', '--is-ancestor', base, head)
-            changed = git(a.repo, 'diff', '--no-renames', '--name-only', '-z', base, head).decode('utf-8').split('\0')[:-1]
+            changed = changed_paths(a.repo, base, head)
             result = verify_scope(config['registry'], config['lease'], config['order'], config['task'], changed, config['forbidden'])
         print(json.dumps({'state': 'PASS', **result}, sort_keys=True))
         return 0

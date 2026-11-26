@@ -82,3 +82,13 @@ The latest published release observed at candidate preparation is v2.0.6. §32 i
 ### v2.0.7 candidate integrity gates
 
 The draft adds §33 and portable JSON/ZIP/source/evidence/scope checks. See scripts/mads_verify.py and scripts/check_release.py. Run the negative suite with python3 -m unittest discover -s scripts -p 'test_*.py' -v. The release trust manifest must be independently approved and its SHA-256 pinned outside the assessed writer's control; a locally generated manifest is not an independent trust root. No candidate ZIP or reference broker enables operational authority.
+
+Reference CLI (the checker executable and anchor SHA-256 must be selected by the trusted Owner, not by the evaluated agent):
+
+- Full release ZIP: python3 scripts/mads_verify.py archive --anchor release.trust.json --anchor-sha256 APPROVED_SHA256 --archive release.zip
+- Full source: python3 scripts/mads_verify.py source --anchor release.trust.json --anchor-sha256 APPROVED_SHA256 --root verified-source
+- Project copy: python3 scripts/mads_verify.py projection --anchor release.trust.json --anchor-sha256 APPROVED_SHA256 --projection projection.json --projection-sha256 APPROVED_PROJECTION_SHA256 --root project
+- Evidence: python3 scripts/mads_verify.py evidence --anchor expected-receipt.json --anchor-sha256 APPROVED_EXPECTATION_SHA256 --receipt observed-receipt.json --repo source-checkout --root evidence-directory
+- Scope: python3 scripts/mads_verify.py scope --anchor approved-scope.json --anchor-sha256 APPROVED_SCOPE_SHA256 --repo source-checkout
+
+Projection schema mads.release-projection.v1 has release_source_commit and paths (upstream path -> project-local path). Evidence schema mads.evidence-binding.v1 has head, tree, locks_sha256, environment_sha256, inputs_sha256, argv, rc, artifacts_sha256 and schema. The Owner separately approves the expected receipt; execution and actor authenticity are still independent gates. Scope config contains registry, lease, order, task, forbidden (path lists), base and head (full commit IDs). Source scope supports literal canonical paths and directory/** only; unsupported patterns block instead of granting broader rights. The project adapter must independently derive these values from the live admission transaction, validate task kind, STOP/epoch/expiry and enforce protected writes. Use a trusted isolated read-only snapshot, not a concurrently mutable agent checkout.

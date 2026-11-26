@@ -13,6 +13,8 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
+import sys
+from mads_verify import covers, path_name, scope_list, strict_json
 
 ZERO = '0' * 40
 DENY = ('production_authorized', 'external_host_authorized',
@@ -25,38 +27,40 @@ def require(ok, reason):
 
 
 def canonical(value):
-    return (json.dumps(value, sort_keys=True, separators=(',', ':')) + '\n').encode()
+    return (json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False) + '\n').encode()
 
 
 def parse(raw):
-    def unique(pairs):
-        result = {}
-        for key, value in pairs:
-            require(key not in result, 'duplicate JSON key')
-            result[key] = value
-        return result
     require(len(raw) <= 1024 * 1024, 'oversized JSON')
-    return json.loads(raw, object_pairs_hook=unique)
+    return strict_json(raw)
 
 
 def git(repo, *args, data=None, env=None):
+    env = dict(os.environ if env is None else env, GIT_NO_REPLACE_OBJECTS='1')
     return subprocess.run(['git', '--git-dir', str(repo), *args], input=data,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           env=env, check=True).stdout
 
 
 def oid(repo, ref):
-    require(ref.startswith('refs/heads/'), 'not a branch ref')
+    require(type(ref) is str and ref.startswith('refs/heads/'), 'not a branch ref')
     git(repo, 'check-ref-format', ref)
-    return git(repo, 'rev-parse', '--verify', ref).decode().strip()
+    tip = git(repo, 'rev-parse', '--verify', ref).decode().strip()
+    refs = git(repo, 'for-each-ref', '--format=%(refname)%09%(symref)', ref).decode().splitlines()
+    require(ref + '\t' in refs, 'symbolic or missing ref')
+    return tip
 
 
 def read(repo, tip, path):
-    require(re.fullmatch('[0-9a-f]{40}', tip) is not None, 'bad object id')
+    require(type(tip) is str and re.fullmatch('[0-9a-f]{40}', tip) is not None, 'bad object id')
+    path_name(path)
+    entry = git(repo, 'ls-tree', tip, '--', path).decode().split()
+    require(len(entry) >= 4 and entry[0] in ('100644', '100755') and entry[1] == 'blob' and entry[3] == path, 'not a regular Git blob')
     return git(repo, 'show', f'{tip}:{path}')
 
 
 def commit(repo, parent, path, obj):
+    path_name(path)
     with tempfile.TemporaryDirectory() as d:
         env = dict(os.environ, GIT_INDEX_FILE=str(Path(d) / 'index'))
         git(repo, 'read-tree', parent, env=env)
@@ -74,23 +78,42 @@ def append_mail(repo, parent, path, obj):
 def atomic(repo, checks, updates):
     require(not set(checks) & set(updates), 'overlapping refs')
     lines = ['start']
-    lines += [f'verify {ref} {old}' for ref, old in sorted(checks.items())]
+    for ref, old in sorted(checks.items()):
+        git(repo, 'check-ref-format', ref)
+        require(ref.startswith('refs/heads/') and type(old) is str and re.fullmatch('[0-9a-f]{40}', old), 'bad guard')
+        lines.append(f'verify {ref} {old}')
     for ref, (old, new) in sorted(updates.items()):
         git(repo, 'check-ref-format', ref)
-        require(all(re.fullmatch('[0-9a-f]{40}', x) for x in (old, new)), 'bad OID')
+        require(ref.startswith('refs/heads/') and all(type(x) is str and re.fullmatch('[0-9a-f]{40}', x) for x in (old, new)), 'bad OID')
         if old == ZERO:
             lines.append(f'create {ref} {new}')
         else:
             git(repo, 'merge-base', '--is-ancestor', old, new)
             lines.append(f'update {ref} {new} {old}')
-    git(repo, 'update-ref', '--stdin', data=('\n'.join(lines + ['prepare', 'commit']) + '\n').encode())
+    git(repo, 'update-ref', '--no-deref', '--stdin', data=('\n'.join(lines + ['prepare', 'commit']) + '\n').encode())
     require(all(oid(repo, ref) == new for ref, (_, new) in updates.items()), 'postcommit drift; freeze')
 
 
 def time(value):
+    require(type(value) is str, 'invalid time type')
     result = dt.datetime.fromisoformat(value.replace('Z', '+00:00'))
     require(result.tzinfo is not None, 'time zone required')
     return result
+
+
+def role_status(status, cfg, role, now):
+    require(type(status) is dict and type(cfg.get('status_schema')) is str and status.get('schema') == cfg['status_schema'], 'unknown status schema')
+    require(status.get('role_id') == role, 'role mismatch')
+    require(type(status.get('lease_epoch')) is int and status['lease_epoch'] > 0, 'invalid epoch')
+    require(all(type(status.get(k)) is str and status[k] for k in ('session_id', 'source_branch', 'status_branch', 'inbox', 'outbox', 'monitoring_mode')), 'invalid status field')
+    require(all(type(status.get(k)) is str and re.fullmatch('[0-9a-f]{40}', status[k]) for k in ('source_head', 'source_tree')), 'invalid source pin')
+    approved = scope_list(cfg['allowed_paths'])
+    actual = scope_list(status['allowed_paths'])
+    require(all(any(covers(p, x) for p in approved) for x in actual), 'unapproved scope')
+    require(all(status.get(k) is False for k in DENY) and status.get('upgrade_hold') is True, 'forbidden authority')
+    require(time(status['expires_utc']) > now and time(status['manual_monitoring_expires_utc']) > now, 'expired status')
+    state = status.get('state')
+    require((state in ('ACTIVE', 'LEASE_ACTIVE_SOURCE_SCOPED') and status.get('source_write_authorized') is True) or (state == 'OFFERED_CONDITIONAL' and status.get('source_write_authorized') is False), 'invalid status state/authority')
 
 
 def safe_status(status, now):
@@ -100,12 +123,13 @@ def safe_status(status, now):
     require(status.get('upgrade_hold') is True, 'hold required')
     require(time(status['expires_utc']) > now and time(status['manual_monitoring_expires_utc']) > now,
             'expired lease or monitoring')
-    require(isinstance(status['allowed_paths'], list) and status['allowed_paths'], 'missing scope')
+    scope_list(status['allowed_paths'])
     require(type(status['lease_epoch']) is int and status['lease_epoch'] > 0, 'invalid epoch')
 
 
 def transact(repo, policy, request, now):
     # Caller MUST authenticate exact request bytes using the trusted launcher.
+    require(type(policy) is dict and type(request) is dict, 'object policy/request required')
     require(policy['enabled'] is True and policy['canonical_bare'] is True, 'broker disabled')
     require(Path(repo).resolve() == Path(policy['repo_path']).resolve(), 'wrong repository path')
     require(git(repo, 'rev-parse', '--is-bare-repository').strip() == b'true', 'bare repo required')
@@ -125,7 +149,12 @@ def transact(repo, policy, request, now):
     ptr, inbox, outbox = (cfg[k] for k in ('current', 'inbox', 'outbox'))
     current = oid(repo, ptr)
     status = parse(read(repo, current, 'sessions/onboarding.json'))
-    require(status['role_id'] == role, 'role mismatch')
+    role_status(status, cfg, role, now)
+    require(type(request.get('guards')) is dict and type(request.get('lock_blobs')) is dict, 'guard/lock map required')
+    require(set(request['guards']) == set(cfg['guards']) | {outbox}, 'incomplete guard set')
+    require(set(request['lock_blobs']) == set(scope_list(cfg['lock_paths'])), 'incomplete lock pins')
+    for path in request['lock_blobs']:
+        path_name(path)
     require(status['inbox'] == inbox.removeprefix('refs/heads/') and
             status['outbox'] == outbox.removeprefix('refs/heads/'), 'mailbox mapping mismatch')
     request_hash = hashlib.sha256(canonical(request)).hexdigest()
@@ -151,6 +180,7 @@ def transact(repo, policy, request, now):
     require(tree == status['source_tree'] == request['source_tree'], 'tree drift')
     require(set(request['lock_blobs']) == set(cfg['lock_paths']), 'incomplete lock pins')
     for path, expected in request['lock_blobs'].items():
+        read(repo, head, path)
         require(git(repo, 'rev-parse', f'{head}:{path}').decode().strip() == expected, 'lock drift')
     guards = request['guards']
     require('refs/heads/main' in cfg['guards'], 'main guard missing')
@@ -228,14 +258,19 @@ def main():
     for field in ('repo', 'policy', 'request', 'signature', 'allowed-signers'):
         p.add_argument('--' + field, required=True)
     a = p.parse_args()
-    raw = Path(a.request).read_bytes()
-    require(len(raw) <= 1024 * 1024, 'oversized request')
-    policy = parse(Path(a.policy).read_bytes())
-    subprocess.run(['ssh-keygen', '-Y', 'verify', '-f', a.allowed_signers, '-I',
-                    policy['launcher_principal'], '-n', 'mads.successor.v1', '-s', a.signature],
-                   input=raw, check=True)
-    print(json.dumps(transact(Path(a.repo), policy, parse(raw), dt.datetime.now(dt.timezone.utc))))
+    try:
+        raw = Path(a.request).read_bytes()
+        request = parse(raw)
+        policy = parse(Path(a.policy).read_bytes())
+        subprocess.run(['ssh-keygen', '-Y', 'verify', '-f', a.allowed_signers, '-I',
+                        policy['launcher_principal'], '-n', 'mads.successor.v1', '-s', a.signature],
+                       input=raw, check=True)
+        print(json.dumps(transact(Path(a.repo), policy, request, dt.datetime.now(dt.timezone.utc))))
+        return 0
+    except (OSError, ValueError, TypeError, AttributeError, KeyError, RuntimeError, subprocess.CalledProcessError) as exc:
+        print(json.dumps({'state': 'BLOCKED', 'error_type': type(exc).__name__}, sort_keys=True))
+        return 1
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

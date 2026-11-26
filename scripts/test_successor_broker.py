@@ -1,6 +1,8 @@
 import copy
 import datetime as dt
 import hashlib
+import json
+import sys
 from pathlib import Path
 import subprocess
 import tempfile
@@ -45,7 +47,8 @@ class BrokerTests(unittest.TestCase):
         self.policy = dict(enabled=True, canonical_bare=True, project='demo', repo_path=str(self.repo),
                            roles={ROLE: dict(enabled=True, runtime='manual', current=PTR,
                            inbox=IN, outbox=OUT, status_prefix='refs/heads/status/ci-',
-                           source_prefix='refs/heads/agent/ci/', guards=[MAIN, GLOBAL], lock_paths=['ledger.json'])})
+                           source_prefix='refs/heads/agent/ci/', guards=[MAIN, GLOBAL], lock_paths=['ledger.json'],
+                           status_schema='test', allowed_paths=['src/**'])})
         self.req = dict(project='demo', kind='offer', role=ROLE, directive='HUMAN_REPLACEMENT',
                         conflict=False, stop_reviewed=True, ledger_reviewed=True,
                         issued_at='2025-12-31T23:55:00Z', expires_at='2026-01-01T00:05:00Z',
@@ -129,6 +132,40 @@ class BrokerTests(unittest.TestCase):
         self.req['inbox_tip']=late
         self.denied()
     def test_wrong_lock(self): self.denied(dict(self.req,lock_blobs={'ledger.json':'0'*40}))
+    def alter_status(self, **changes):
+        status = dict(self.status(), **changes)
+        updated = commit(self.repo, self.old, 'sessions/onboarding.json', status)
+        for ref in (OLD, PTR):
+            git(self.repo, 'update-ref', ref, updated, self.old)
+        self.req['current_tip'] = updated
+
+    def test_unknown_status_schema(self):
+        self.alter_status(schema='unknown'); self.denied()
+
+    def test_unapproved_scope(self):
+        self.alter_status(allowed_paths=['other/**']); self.denied()
+
+    def test_malformed_scope(self):
+        self.alter_status(allowed_paths=['src/../other']); self.denied()
+
+    def test_boolean_epoch(self):
+        self.alter_status(lease_epoch=True); self.denied()
+
+    def test_symbolic_guard(self):
+        git(self.repo, 'symbolic-ref', MAIN, SRC); self.denied()
+
+    def test_non_object_and_nonfinite_json(self):
+        for raw in (b'[]', b'null', b'{"x":NaN}', b'{"x":1e999}', b'\xff'):
+            with self.subTest(raw=raw), self.assertRaises(ValueError): parse(raw)
+
+    def test_cli_structured_bad_json(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d)/'request.json'; p.write_bytes(b'[]')
+            r = subprocess.run([sys.executable, str(Path(__file__).with_name('successor_broker.py')), '--repo', str(self.repo), '--request', str(p), '--policy', str(p), '--signature', str(p), '--allowed-signers', str(p)], capture_output=True)
+            self.assertEqual(r.returncode, 1)
+            self.assertEqual(json.loads(r.stdout)['state'], 'BLOCKED')
+            self.assertNotIn(b'Traceback', r.stderr)
+
     def test_duplicate_json(self):
         with self.assertRaises(ValueError): parse(b'{"a":1,"a":2}')
 
