@@ -7,6 +7,8 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
+import successor_broker as broker
 from successor_broker import ZERO, atomic, canonical, commit, git, oid, parse, read, transact
 
 NOW = dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc)
@@ -37,6 +39,7 @@ class BrokerTests(unittest.TestCase):
                  inbox=IN[11:], outbox=OUT[11:], source_head=self.head, source_tree=self.tree,
                  allowed_paths=['src/a'], expires_utc='2026-05-01T00:00:00Z',
                  manual_monitoring_expires_utc='2026-05-01T00:00:00Z', monitoring_mode='manual',
+                 lock_blobs={'ledger.json': git(self.repo, 'rev-parse', f'{self.head}:ledger.json').decode().strip()},
                  source_write_authorized=True, upgrade_hold=True, production_authorized=False,
                  external_host_authorized=False, main_merge_authorized=False, us_poweroff_authorized=False)
         self.old = commit(self.repo, self.head, 'sessions/onboarding.json', s)
@@ -48,7 +51,8 @@ class BrokerTests(unittest.TestCase):
                            roles={ROLE: dict(enabled=True, runtime='manual', current=PTR,
                            inbox=IN, outbox=OUT, status_prefix='refs/heads/status/ci-',
                            source_prefix='refs/heads/agent/ci/', guards=[MAIN, GLOBAL], lock_paths=['ledger.json'],
-                           status_schema='test', allowed_paths=['src/**'])})
+                           status_schema='test', allowed_paths=['src/**'], monitoring_mode='manual',
+                           ledger_ref=MAIN, ledger_path='ledger.json')})
         self.req = dict(project='demo', kind='offer', role=ROLE, directive='HUMAN_REPLACEMENT',
                         conflict=False, stop_reviewed=True, ledger_reviewed=True,
                         issued_at='2025-12-31T23:55:00Z', expires_at='2026-01-01T00:05:00Z',
@@ -153,6 +157,48 @@ class BrokerTests(unittest.TestCase):
 
     def test_symbolic_guard(self):
         git(self.repo, 'symbolic-ref', MAIN, SRC); self.denied()
+
+    def test_late_symbolic_guard_same_oid(self):
+        original = broker.prepared_transaction
+        def mutate(repo, lines, checks, updates):
+            git(repo, 'symbolic-ref', MAIN, SRC)
+            return original(repo, lines, checks, updates)
+        with patch.object(broker, 'prepared_transaction', side_effect=mutate):
+            self.denied()
+        self.assertEqual(oid(self.repo, IN), self.head)
+        self.assertEqual(oid(self.repo, OLD), self.old)
+
+    def test_predecessor_lock_mismatch(self):
+        self.alter_status(lock_blobs={'ledger.json': '0'*40})
+        self.denied()
+
+    def test_tree_guard_is_not_commit(self):
+        # Deliberate raw fixture corruption, not a normal Git writer.
+        (self.repo / GLOBAL).write_text(self.tree + '\n')
+        self.req['guards'][GLOBAL] = self.tree
+        self.denied()
+
+    def test_cross_kind_request_id_reuse(self):
+        a = self.ack()
+        a['id'] = self.req['id']
+        self.denied(a)
+
+    def test_unapproved_monitoring_mode(self):
+        self.alter_status(monitoring_mode='arbitrary')
+        self.denied()
+
+    def test_monitoring_policy_mismatch(self):
+        self.alter_status(monitoring_mode='WATCHDOG_VERIFIED')
+        self.denied()
+
+    def test_unknown_request_field(self):
+        self.denied(dict(self.req, unexpected=True))
+        a = self.ack()
+        self.denied(dict(a, unexpected=True))
+
+    def test_canonical_ledger_path(self):
+        self.policy['roles'][ROLE]['ledger_path'] = 'other.json'
+        self.denied()
 
     def test_non_object_and_nonfinite_json(self):
         for raw in (b'[]', b'null', b'{"x":NaN}', b'{"x":1e999}', b'\xff'):

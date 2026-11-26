@@ -14,7 +14,7 @@ import re
 import subprocess
 import tempfile
 import sys
-from mads_verify import covers, path_name, scope_list, strict_json
+from mads_verify import covers, path_name, scope_list, strict_json, exact_keys
 
 ZERO = '0' * 40
 DENY = ('production_authorized', 'external_host_authorized',
@@ -35,8 +35,17 @@ def parse(raw):
     return strict_json(raw)
 
 
+def git_env(env=None):
+    source = os.environ if env is None else env
+    clean = {k: v for k, v in source.items() if not k.startswith('GIT_')}
+    if env is not None and 'GIT_INDEX_FILE' in env:
+        clean['GIT_INDEX_FILE'] = env['GIT_INDEX_FILE']
+    clean.update(GIT_NO_REPLACE_OBJECTS='1', GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=os.devnull)
+    return clean
+
+
 def git(repo, *args, data=None, env=None):
-    env = dict(os.environ if env is None else env, GIT_NO_REPLACE_OBJECTS='1')
+    env = git_env(env)
     return subprocess.run(['git', '--git-dir', str(repo), *args], input=data,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           env=env, check=True).stdout
@@ -48,6 +57,8 @@ def oid(repo, ref):
     tip = git(repo, 'rev-parse', '--verify', ref).decode().strip()
     refs = git(repo, 'for-each-ref', '--format=%(refname)%09%(symref)', ref).decode().splitlines()
     require(ref + '\t' in refs, 'symbolic or missing ref')
+    require(re.fullmatch('[0-9a-f]{40}', tip) is not None and
+            git(repo, 'cat-file', '-t', tip).strip() == b'commit', 'branch ref is not a commit')
     return tip
 
 
@@ -90,8 +101,43 @@ def atomic(repo, checks, updates):
         else:
             git(repo, 'merge-base', '--is-ancestor', old, new)
             lines.append(f'update {ref} {new} {old}')
-    git(repo, 'update-ref', '--no-deref', '--stdin', data=('\n'.join(lines + ['prepare', 'commit']) + '\n').encode())
+    prepared_transaction(repo, lines, checks, updates)
     require(all(oid(repo, ref) == new for ref, (_, new) in updates.items()), 'postcommit drift; freeze')
+
+
+def prepared_transaction(repo, lines, checks, updates):
+    """Recheck direct ref type while the Git transaction holds its ref locks.
+
+    This covers Git-mediated writers, not privileged raw ref-file mutation.
+    The deployment must independently prevent bypass of the canonical writer.
+    """
+    argv = ['git', '--git-dir', str(repo), 'update-ref', '--no-deref', '--stdin']
+    with tempfile.TemporaryFile() as errors:
+        proc = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                stderr=errors, env=git_env())
+        try:
+            def step(command, reply):
+                proc.stdin.write(command.encode())
+                proc.stdin.flush()
+                if proc.stdout.readline() != reply:
+                    raise subprocess.CalledProcessError(proc.poll() or 1, argv)
+            step('start\n', b'start: ok\n')
+            step('\n'.join(lines[1:] + ['prepare']) + '\n', b'prepare: ok\n')
+            for ref, old in {**checks, **{r: pair[0] for r, pair in updates.items()}}.items():
+                if old == ZERO:
+                    probe = subprocess.run(['git', '--git-dir', str(repo), 'symbolic-ref', '-q', ref],
+                                           env=git_env(), capture_output=True)
+                    require(probe.returncode == 1, 'symbolic or invalid create target')
+                else:
+                    require(oid(repo, ref) == old, 'prepared guard drift')
+            step('commit\n', b'commit: ok\n')
+            proc.stdin.close()
+            require(proc.wait() == 0, 'transaction failed')
+        finally:
+            if proc.poll() is None:
+                proc.stdin.close()  # EOF aborts an uncommitted prepared transaction
+                proc.wait()
+            proc.stdout.close()
 
 
 def time(value):
@@ -107,6 +153,8 @@ def role_status(status, cfg, role, now):
     require(type(status.get('lease_epoch')) is int and status['lease_epoch'] > 0, 'invalid epoch')
     require(all(type(status.get(k)) is str and status[k] for k in ('session_id', 'source_branch', 'status_branch', 'inbox', 'outbox', 'monitoring_mode')), 'invalid status field')
     require(all(type(status.get(k)) is str and re.fullmatch('[0-9a-f]{40}', status[k]) for k in ('source_head', 'source_tree')), 'invalid source pin')
+    require(status['monitoring_mode'] in ('manual', 'OWNER_EXPLICIT_BOUNDED_MANUAL_EXCEPTION', 'WATCHDOG_VERIFIED') and
+            status['monitoring_mode'] == cfg['monitoring_mode'], 'unapproved monitoring mode')
     approved = scope_list(cfg['allowed_paths'])
     actual = scope_list(status['allowed_paths'])
     require(all(any(covers(p, x) for p in approved) for x in actual), 'unapproved scope')
@@ -135,6 +183,11 @@ def transact(repo, policy, request, now):
     require(git(repo, 'rev-parse', '--is-bare-repository').strip() == b'true', 'bare repo required')
     require(request['project'] == policy['project'], 'wrong project')
     require(request['kind'] in ('offer', 'activate'), 'bad request kind')
+    fields = {'project', 'kind', 'role', 'directive', 'conflict', 'stop_reviewed',
+              'ledger_reviewed', 'issued_at', 'expires_at', 'id', 'current_tip',
+              'old_session', 'source_head', 'source_tree', 'lock_blobs', 'guards',
+              'inbox_tip', 'ledger_ref', 'ledger_path', 'ledger_sha256'}
+    exact_keys(request, fields | ({'offer_id'} if request['kind'] == 'activate' else set()))
     role = request['role']
     require(role in policy['roles'], 'role not enrolled')
     cfg = policy['roles'][role]
@@ -145,7 +198,7 @@ def transact(repo, policy, request, now):
     require(time(request['issued_at']) <= now < time(request['expires_at']) and
             time(request['expires_at']) - time(request['issued_at']) <= dt.timedelta(minutes=15), 'stale request')
     rid = request['id']
-    require(re.fullmatch('[0-9a-f]{32}', rid) is not None, 'invalid request id')
+    require(type(rid) is str and re.fullmatch('[0-9a-f]{32}', rid) is not None, 'invalid request id')
     ptr, inbox, outbox = (cfg[k] for k in ('current', 'inbox', 'outbox'))
     current = oid(repo, ptr)
     status = parse(read(repo, current, 'sessions/onboarding.json'))
@@ -157,7 +210,19 @@ def transact(repo, policy, request, now):
         path_name(path)
     require(status['inbox'] == inbox.removeprefix('refs/heads/') and
             status['outbox'] == outbox.removeprefix('refs/heads/'), 'mailbox mapping mismatch')
+    require(status.get('lock_blobs') == request['lock_blobs'], 'predecessor/offered lock mismatch')
+    require(request['ledger_ref'] == cfg['ledger_ref'] and request['ledger_path'] == cfg['ledger_path'], 'unapproved canonical ledger')
+    path_name(cfg['ledger_path'])
     request_hash = hashlib.sha256(canonical(request)).hexdigest()
+    request_path = 'coordination/messages/MADS-REQUEST-' + rid + '.json'
+    incoming = oid(repo, inbox)
+    seen = bool(git(repo, 'ls-tree', incoming, '--', request_path))
+    if seen:
+        require(parse(read(repo, incoming, request_path)) ==
+                {'id': rid, 'kind': request['kind'], 'sha256': request_hash}, 'request ID reuse')
+        require(status.get('last_request_sha256') == request_hash, 'historical request replay')
+    else:
+        require(status.get('last_request_sha256') != request_hash, 'missing request journal')
     if status.get('last_request_sha256') == request_hash:
         require(oid(repo, 'refs/heads/' + status['status_branch']) == current, 'status drift')
         require(oid(repo, 'refs/heads/' + status['source_branch']) == status['source_head'], 'source drift')
@@ -217,7 +282,8 @@ def transact(repo, policy, request, now):
                         last_request_sha256=request_hash, upgrade_hold=True,
                         github_credential_revocation_verified=False, unpublished_work='UNKNOWN',
                         **{k: False for k in DENY}))
-        mail = append_mail(repo, incoming, f'coordination/messages/MADS-STOP-{rid}.json', revoked)
+        mail = append_mail(repo, incoming, request_path, {'id': rid, 'kind': request['kind'], 'sha256': request_hash})
+        mail = append_mail(repo, mail, f'coordination/messages/MADS-STOP-{rid}.json', revoked)
         mail = append_mail(repo, mail, f'coordination/messages/MADS-SESSION-START-{rid}.json', new)
         new['verified_inbox_tip'] = mail
         ntip = commit(repo, rtip, 'sessions/onboarding.json', new)
@@ -228,6 +294,8 @@ def transact(repo, policy, request, now):
     require(status['state'] == 'OFFERED_CONDITIONAL' and status['source_write_authorized'] is False,
             'no conditional offer')
     require(request['offer_id'] == status['offer_id'], 'wrong offer')
+    require(request['old_session'] == status['prior_session_id'] and
+            all(request[k] == status[k] for k in ('ledger_ref', 'ledger_path', 'ledger_sha256')), 'activation baseline mismatch')
     require(status['lock_blobs'] == request['lock_blobs'], 'offered lock mismatch')
     require(time(status['expires_utc']) > now and time(status['manual_monitoring_expires_utc']) > now,
             'expired offer')
@@ -245,11 +313,12 @@ def transact(repo, policy, request, now):
     require(ack == {'offer_id': status['offer_id'], 'session_id': status['session_id'],
                     'status_tip': current, 'source_head': head, 'source_tree': tree,
                     'ledger_sha256': status['ledger_sha256'], 'decision': 'ACK'}, 'ACK mismatch')
+    mail = append_mail(repo, incoming, request_path, {'id': rid, 'kind': request['kind'], 'sha256': request_hash})
     active = dict(status, state='ACTIVE', source_write_authorized=True,
-                  last_request_sha256=request_hash, verified_inbox_tip=incoming)
+                  last_request_sha256=request_hash, verified_inbox_tip=mail)
     atip = commit(repo, current, 'sessions/onboarding.json', active)
-    atomic(repo, {**checks, oldsource: status['prior_source_head'], inbox: incoming, prior: status['prior_status_head']},
-           {ptr: (current, atip), oldref: (current, atip)})
+    atomic(repo, {**checks, oldsource: status['prior_source_head'], prior: status['prior_status_head']},
+           {ptr: (current, atip), oldref: (current, atip), inbox: (incoming, mail)})
     return {'state': 'ACTIVE', 'status': atip, 'reused': False}
 
 
