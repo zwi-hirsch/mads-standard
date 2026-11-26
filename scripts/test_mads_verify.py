@@ -1,6 +1,9 @@
 import io
 import json
 import stat
+import runpy
+import shutil
+import sys
 import subprocess
 import tempfile
 import unittest
@@ -129,6 +132,44 @@ class VerifyTests(unittest.TestCase):
         (self.root/'link').symlink_to('renamed.md');git(self.root,'add','link');git(self.root,'commit','-qm','symlink')
         bad=git(self.root,'rev-parse','HEAD').decode().strip()
         with self.assertRaisesRegex(ValueError,'UNSAFE_GIT_FILE_MODE'): changed_paths(self.root,head,bad)
+
+    def test_release_pipeline_fixture(self):
+        # Real exporter and source checker, synthetic standard text and Git history.
+        scripts = self.root / 'scripts'; scripts.mkdir()
+        for path in Path(__file__).resolve().parent.glob('*.py'):
+            shutil.copyfile(path, scripts/path.name)
+        (self.root/'MADS-VERSION.yaml').write_text('version: "2.0.7"\nnormative_sections: 33\npublication_status: STAGED_NOT_PUBLISHED\n')
+        exporter = runpy.run_path(str(scripts/'build_release.py'))
+        for rel in set(exporter['REQUIRED']) | {'LICENSE'}:
+            path = self.root/rel
+            if not path.exists():
+                path.parent.mkdir(parents=True,exist_ok=True); path.write_text('TEST ONLY\n')
+        (self.root/exporter['CORE']).write_text(''.join(f'## {i}. Synthetic section\n' for i in range(1,34)))
+        (self.root/'templates/mads/v2/NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md').write_text('[НАЗВАНИЕ ПРОЕКТА] SESSION_START sha256\n')
+        (self.root/'STANDARD.md').unlink(); (self.root/'templates/required.md').unlink()
+        subprocess.run(['git','init','-q',str(self.root)],check=True)
+        git(self.root,'config','user.name','TEST');git(self.root,'config','user.email','test@example.invalid')
+        git(self.root,'add','.');git(self.root,'commit','-qm','synthetic release')
+        def call(script,*args):
+            return subprocess.run([sys.executable,str(scripts/script),*map(str,args)],capture_output=True)
+        out=self.root/'dist'; build=call('build_release.py','--draft','--out',out)
+        self.assertEqual(build.returncode,0,build.stderr)
+        archive=next(out.glob('*.zip')); first=archive.read_bytes()
+        self.assertEqual(call('build_release.py','--draft','--out',out).returncode,0)
+        self.assertEqual(first,archive.read_bytes())
+        trust=out/'candidate.trust.json'; good=call('check_release.py','--archive',archive,'--anchor-out',trust,'--draft')
+        self.assertEqual(good.returncode,0,good.stdout+good.stderr)
+        self.assertEqual(json.loads(good.stdout)['files_checked'],len(set(exporter['REQUIRED'])|{'LICENSE'}))
+        self.assertNotEqual(call('build_release.py','--out',out).returncode,0)
+        wrong=call('check_release.py','--archive',archive,'--anchor-out',trust)
+        self.assertEqual(wrong.returncode,1);self.assertEqual(json.loads(wrong.stdout)['error'],'PUBLICATION_STATUS_MISMATCH')
+        archive.write_bytes(b'not a zip')
+        bad=call('check_release.py','--archive',archive,'--anchor-out',trust,'--draft')
+        self.assertEqual(bad.returncode,1);self.assertEqual(json.loads(bad.stdout)['state'],'FAIL')
+        archive.write_bytes(first)
+        (self.root/'README.md').write_text('changed')
+        dirty=call('check_release.py','--archive',archive,'--anchor-out',trust,'--draft')
+        self.assertEqual(dirty.returncode,1);self.assertEqual(json.loads(dirty.stdout)['error'],'DIRTY_TRACKED_SOURCE')
 
     def test_evidence(self):
         subprocess.run(['git','init','-q',str(self.root)],check=True)
