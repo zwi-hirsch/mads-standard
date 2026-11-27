@@ -1,14 +1,16 @@
-name: Verify MADS release-candidate source and one-name bootstrap
+name: Verify MADS exact release candidate
 on:
   pull_request:
     paths:
       - 'MULTI-AGENT-DEVELOPMENT-SYSTEM.md'
-      - 'scripts/build_release.py'
+      - 'scripts/**'
       - 'MADS-VERSION.yaml'
       - 'README.md'
+      - 'PUBLISHING.md'
+      - 'SECURITY.md'
+      - 'LICENSE'
       - 'templates/mads/v2/**'
-      - '.github/workflows/release-v2.yml'
-      - '.github/workflows/verify-mads-release-candidate.yml'
+      - '.github/workflows/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,54 +19,22 @@ jobs:
     if: github.repository == 'zwi-hirsch/mads-standard'
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout exact candidate
-        uses: actions/checkout@v4
-      - name: Compile exporter and build deterministic ZIP
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Execute reference negative tests
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Build and bind exact candidate
         run: |
-          python3 -m py_compile scripts/build_release.py
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/mads-candidate"
           if grep -q "^publication_status: STAGED_NOT_PUBLISHED" MADS-VERSION.yaml; then
-            python3 scripts/build_release.py --draft --out "$RUNNER_TEMP/mads-candidate"
+            python3 scripts/build_release.py --draft --out "$OUT"
+            DRAFT=--draft
           else
-            python3 scripts/build_release.py --out "$RUNNER_TEMP/mads-candidate"
+            python3 scripts/build_release.py --out "$OUT"
+            DRAFT=
           fi
-          (cd "$RUNNER_TEMP/mads-candidate" && sha256sum -c *.zip.sha256)
-      - name: Check release source manifest and one-name prompt
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import hashlib, json, zipfile, os
-          root=Path(os.environ["RUNNER_TEMP"])/"mads-candidate"
-          archives=list(root.glob("mads-standard-v*.zip"))
-          assert len(archives)==1,archives
-          with zipfile.ZipFile(archives[0]) as z:
-              assert z.testzip() is None
-              files=z.namelist()
-              assert len(files)==22,len(files)
-              prefix=files[0].split("/")[0]+"/"
-              man=json.loads(z.read(prefix+"RELEASE-MANIFEST.json"))
-              version_file=Path("MADS-VERSION.yaml").read_text()
-              expected_version=next(line.split(":",1)[1].strip().strip(chr(34)) for line in version_file.splitlines() if line.startswith("version:"))
-              expected_draft="publication_status: STAGED_NOT_PUBLISHED" in version_file
-              assert man["version"]==expected_version and man["draft"] is expected_draft
-              for name, expected in man["files_sha256"].items():
-                  assert hashlib.sha256(z.read(prefix+name)).hexdigest()==expected,name
-              doc=z.read(prefix+"MULTI-AGENT-DEVELOPMENT-SYSTEM.md").decode()
-              import re
-              assert [int(n) for n in re.findall(r"(?m)^## ([0-9]+)\.",doc)]==list(range(1,32))
-              prompt=z.read(prefix+"templates/mads/v2/NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md").decode()
-              assert prompt.count("[НАЗВАНИЕ ПРОЕКТА]")==1
-              assert "sha256" in prompt.lower() # bootstrap points only at a verified published release
-              assert "SESSION_START" in prompt and "G0–G13" in prompt
-              assert "Git-only" in doc and "inter-agent" in doc
-              assert "CONTEXT_EXHAUSTED_UNGRACEFUL" in doc and "No ACK from an unavailable old chat is required" in doc
-              assert "SESSION-RECOVERY.example.md" in man["files_sha256"] or "templates/mads/v2/SESSION-RECOVERY.example.md" in man["files_sha256"]
-              assert "templates/mads/v2/BLOCKER-LEDGER.example.yaml" in man["files_sha256"]
-              assert "templates/mads/v2/REPORT-PUBLICATION.example.yaml" in man["files_sha256"]
-              assert "Interrupted REPORT publication" in doc and "Proactive blocker ownership" in doc
-              assert "chat" in doc.lower() and "Library" in doc
-              assert z.read(prefix+"LICENSE").startswith(b"Apache License\nVersion 2.0")
-              assert "immediate source admission" in doc.lower()
-              assert "not a probation period" in doc and "same invocation" in doc
-              assert "cannot replace source fencing, grant production rights or satisfy G9" in doc
-          print("MADS_IMMEDIATE_ADMISSION_CANDIDATE_PASS",archives[0])
-          PY
+          (cd "$OUT" && sha256sum -c *.zip.sha256)
+          python3 scripts/check_release.py --archive "$OUT"/*.zip --anchor-out "$OUT/candidate.trust.json" $DRAFT
