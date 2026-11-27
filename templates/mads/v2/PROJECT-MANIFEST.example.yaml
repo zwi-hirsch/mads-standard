@@ -73,3 +73,12 @@ admission:
   independent_qa_tested: false
   recovery_drill_tested: false
   status: BLOCKED_ADMISSION
+
+intake:
+  required_before_first_task: true
+  freeze_completed_at_start: true
+  preserve_historical_ref_inventory: true
+  independent_observed_readback_required: true
+  new_feature_refill_if_unresolved: false
+  restart_reads_global_and_personal_decisions: true
+  gate_status: NOT_INSTALLED

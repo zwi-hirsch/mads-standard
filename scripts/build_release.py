@@ -111,6 +111,11 @@ REQUIRED = [
     "scripts/mads_verify.py",
     "scripts/test_mads_verify.py",
     "scripts/check_release.py",
+    "scripts/intake_history.py",
+    "scripts/test_intake_history.py",
+    "scripts/intake_gate.py",
+    "scripts/test_intake_gate.py",
+    "templates/mads/v2/INTAKE-LEDGER.example.md",
 ]
 FORBIDDEN = [
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
