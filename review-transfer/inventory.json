@@ -1,0 +1,151 @@
+{
+  "head": "b8bf9abaa10f8ff98dddb4815e77046c481cfaf2",
+  "tree": "d82368dfc9a43e26ab4241c386a5e1065a903ee6",
+  "files": [
+    {
+      "path": ".github/workflows/release-v2.yml",
+      "blob": "8f6adf289c06a37b8b633a7981e4312d08cdc0b5",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/verify-mads-release-candidate.yml",
+      "blob": "d85213982aad3f7d3efdeb1a0e658107d1f3f471",
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/verify-mads-zip.yml",
+      "blob": "ed1c37584bc08c876024a61cbd36816106dead57",
+      "mode": "100644"
+    },
+    {
+      "path": "LICENSE",
+      "blob": "137069b823873b8bcf42979bcf8e9371052d26a2",
+      "mode": "100644"
+    },
+    {
+      "path": "MADS-VERSION.yaml",
+      "blob": "3db4fef41340517c3c5d0b2128c9b41aa58483fd",
+      "mode": "100644"
+    },
+    {
+      "path": "MULTI-AGENT-DEVELOPMENT-SYSTEM.md",
+      "blob": "521a88b81a7e73c2ef065c6becc7be7681d7eeb0",
+      "mode": "100644"
+    },
+    {
+      "path": "PUBLISHING.md",
+      "blob": "063d6b80ce97d3dd69772759bf6b5f5f4e10fd3a",
+      "mode": "100644"
+    },
+    {
+      "path": "README.md",
+      "blob": "4af30ad71531b5b548b76eac4af222504d759e0f",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/build_release.py",
+      "blob": "2b0260aad7aabf5cfab45d4537720fd343089836",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/check_release.py",
+      "blob": "4609231c6c0d75ab31f0599a36bb3897656358bd",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/mads_verify.py",
+      "blob": "1551b0f4d13a9b7ca5cd0bf8b78a6c340b27686d",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/successor_broker.py",
+      "blob": "6abeb50e2882a06a592e2d6b5d90647b7e15ffc0",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/test_mads_verify.py",
+      "blob": "7f1609ba375cf15c20618a64330afadfc295b2c4",
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/test_successor_broker.py",
+      "blob": "0b0ac82d473b994562324be702e99378a1e642a4",
+      "mode": "100644"
+    },
+    {
+      "path": "SECURITY.md",
+      "blob": "88774d07cb30f2761ce4ddc28290685584ab9ad0",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/BLOCKER-LEDGER.example.yaml",
+      "blob": "f5a043356bf01a49711af7de4294fe71556c1104",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/INTEGRATION-HANDOFF.example.md",
+      "blob": "2ea375396c62b4b61d8758458a4118ff186a47cc",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/MADS-VERSION-LOCK.example.yaml",
+      "blob": "08a5e8e8bb1b6e9a6d0d873f9616283239cde054",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/NEW-PROJECT-BOOTSTRAP-PROMPT.ru.md",
+      "blob": "fa975a1dadef3850880ac82a6602a01b57ce619c",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/PILOT-ACCEPTANCE.example.md",
+      "blob": "7195245ec070ee9e40086f51a6d288e2fef958b1",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/PROJECT-MANIFEST.example.yaml",
+      "blob": "c330db1dd99e5733cd810ba12d24c156a4bfe814",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/READ-ONLY-ONBOARDING.example.md",
+      "blob": "3a74e3678c44b5020e11de76472eeb00c0bca0fe",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/README.md",
+      "blob": "f16705c08e055cee46801480f387dcb95f8dbf2a",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/REPORT-PUBLICATION.example.yaml",
+      "blob": "3bcaef18adc6b4e67cc387c91e38edebe52f7fe7",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/ROLE-REPORT.example.md",
+      "blob": "d0e20d9637b3263f4ae004514caeca25b52fecc9",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/SESSION-RECOVERY.example.md",
+      "blob": "7e434806a2c5634db211883b044fd5c2f835d1df",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/SOURCE-HANDOFF.example.yaml",
+      "blob": "7e9beaf2e05d24a71a376edefdbb599a64bfeeb5",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/SOURCE-SESSION-START.example.md",
+      "blob": "dc2d488df72c68e3b6f070758060eaac6baef9a5",
+      "mode": "100644"
+    },
+    {
+      "path": "templates/mads/v2/SUCCESSOR-BROKER.example.md",
+      "blob": "d18383bcfdc7f2bd0e1d0e8994cf72a3bf470f40",
+      "mode": "100644"
+    }
+  ]
+}
