@@ -55,7 +55,8 @@ def strict_json(raw):
 
 
 def path_name(value):
-    require(type(value) is str and bool(re.fullmatch(r'[A-Za-z0-9_.@+-]+(?:/[A-Za-z0-9_.@+-]+)*', value)), 'UNSAFE_PATH')
+    # Permit only whole Next.js [identifier] components; never arbitrary bracket syntax.
+    require(type(value) is str and bool(re.fullmatch(r'(?:[A-Za-z0-9_.@+-]+|\[[A-Za-z_][A-Za-z0-9_]*\])(?:/(?:[A-Za-z0-9_.@+-]+|\[[A-Za-z_][A-Za-z0-9_]*\]))*', value)), 'UNSAFE_PATH')
     require(all(part.casefold() not in ('.', '..', '.git') and not part.endswith('.') for part in value.split('/')), 'UNSAFE_PATH')
     for part in value.split('/'):
         require(not re.fullmatch(r'CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]', part.split('.')[0], re.I),

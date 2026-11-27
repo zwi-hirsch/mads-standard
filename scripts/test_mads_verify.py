@@ -294,6 +294,116 @@ class VerifyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'CASE_ALIAS_PATH'):
             verify_scope(['src/**'], ['src/**'], ['src/**'], ['src/**'], ['src/a'], ['Src/**'])
 
+
+    def test_next_dynamic_identifier_real_paths_and_scope(self):
+        routes = [
+            'apps/web/src/app/api/v1/customer-requests/[id]/route.ts',
+            'apps/web/src/app/api/v1/price-inquiries/[id]/route.ts',
+            'apps/web/src/app/api/v1/stones/[id]/route.ts',
+        ]
+        for route in routes:
+            with self.subTest(route=route):
+                self.assertEqual(path_name(route), route)
+        self.assertEqual(verify_scope(
+            ['apps/web/src/**'], ['apps/web/src/app/**'],
+            ['apps/web/src/app/api/**'],
+            ['apps/web/src/app/api/v1/stones/[id]/**'],
+            ['apps/web/src/app/api/v1/stones/[id]/route.ts']
+        )['scope'], 'PASS')
+
+    def test_next_dynamic_identifier_is_not_a_general_bracket_escape(self):
+        invalid = [
+            'src/[..]/route.ts', 'src/[.]/route.ts', 'src/[...slug]/route.ts',
+            'src/[[...slug]]/route.ts', 'src/[[id]]/route.ts',
+            'src/[id].ts', 'src/[id?]/route.ts', 'src/[a-b]/route.ts',
+            'src/[123]/route.ts', 'src/[id]/../secret',
+            'src/[id]//route.ts', 'src/[id]/x[abc].ts',
+            'src/[id]/**/route.ts', 'src/[id]/[...path]/route.ts',
+            'src/[id]/./route.ts', 'src/[id]/.git/config',
+            'src/CON/[id]/route.ts', 'src/[id]/NUL.txt',
+            'src/[id]/foo.', 'src/[id]/COM1',
+        ]
+        for rel in invalid:
+            with self.subTest(rel=rel), self.assertRaises(ValueError):
+                path_name(rel)
+        # Brackets are a literal portable directory name, not a Windows device alias.
+        self.assertEqual(path_name('src/[CON]/route.ts'), 'src/[CON]/route.ts')
+
+    def test_next_dynamic_identifier_alias_and_file_directory_denial(self):
+        conflicts = [
+            ['src/[id]/a.ts', 'src/[ID]/b.ts'],
+            ['src/[id]/a.ts', 'Src/[id]/b.ts'],
+            ['src/[id]/a.ts', 'src/[id]/a.ts'],
+            ['src/[id]', 'src/[id]/route.ts'],
+            ['src/[id]/route.ts', 'src/[id]/route.ts/x'],
+        ]
+        for paths in conflicts:
+            with self.subTest(paths=paths), self.assertRaises(ValueError):
+                portable_paths(paths)
+        portable_paths(['src/[id]/route.ts', 'src/[stoneId]/route.ts'])
+
+    def test_next_dynamic_identifier_full_git_trees_and_case_rename(self):
+        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
+        git(self.root, 'config', 'user.name', 'TEST')
+        git(self.root, 'config', 'user.email', 'test@example.invalid')
+        git(self.root, 'config', 'core.ignorecase', 'false')
+        blob = git(self.root, 'hash-object', '-w', 'STANDARD.md').decode().strip()
+        prefix = 'apps/web/src/app/api/v1/'
+        initial = [
+            prefix + 'customer-requests/[id]/route.ts',
+            prefix + 'price-inquiries/[id]/route.ts',
+            prefix + 'stones/[id]/route.ts',
+        ]
+        for rel in initial:
+            git(self.root, 'update-index', '--add', '--cacheinfo', '100644,' + blob + ',' + rel)
+        git(self.root, 'commit', '-qm', 'three legitimate dynamic routes')
+        base = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        adjacent = prefix + 'stones/[id]/extra.ts'
+        git(self.root, 'update-index', '--add', '--cacheinfo', '100644,' + blob + ',' + adjacent)
+        git(self.root, 'commit', '-qm', 'safe adjacent change')
+        head = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        self.assertEqual(changed_paths(self.root, base, head), [adjacent])
+        self.assertEqual(verify_scope(
+            ['apps/web/src/**'], ['apps/web/src/app/**'],
+            ['apps/web/src/app/api/**'], ['apps/web/src/app/api/v1/stones/[id]/**'],
+            [adjacent])['scope'], 'PASS')
+        # An unchanged before/after tree with the old routes is still portable.
+        self.assertEqual(changed_paths(self.root, base, base), [])
+        alias = prefix + 'stones/[ID]/route.ts'
+        git(self.root, 'update-index', '--add', '--cacheinfo', '100644,' + blob + ',' + alias)
+        git(self.root, 'commit', '-qm', 'bad sibling casefold alias')
+        bad = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        with self.assertRaisesRegex(ValueError, 'CASE_ALIAS_PATH'):
+            changed_paths(self.root, head, bad)
+        with self.assertRaisesRegex(ValueError, 'CASE_ALIAS_PATH'):
+            changed_paths(self.root, bad, bad)
+        git(self.root, 'reset', '--mixed', head)
+        git(self.root, 'update-index', '--force-remove', prefix + 'stones/[id]/route.ts')
+        git(self.root, 'update-index', '--add', '--cacheinfo', '100644,' + blob + ',' + alias)
+        git(self.root, 'commit', '-qm', 'case-only transition')
+        renamed = git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        with self.assertRaisesRegex(ValueError, 'CASE_ALIAS_PATH'):
+            changed_paths(self.root, head, renamed)
+
+    def test_next_dynamic_identifier_source_archive_projection(self):
+        route = 'apps/web/src/app/api/v1/stones/[id]/route.ts'
+        p = self.root / route
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(b'synthetic route only')
+        payload = {route: b'synthetic route only'}
+        archive, anchor = self.archive(payload)
+        anchor['files_sha256'] = {route: sha(payload[route])}
+        self.assertEqual(verify_archive(archive, anchor)['archive'], 'PASS')
+        self.assertEqual(verify_source(self.root, anchor)['files_checked'], 1)
+        p.write_bytes(b'standard')
+        projection = dict(schema='mads.release-projection.v1',
+                          release_source_commit='1'*40,
+                          paths={'STANDARD.md': route})
+        self.assertEqual(verify_projection(self.root, self.anchor, projection)['files_checked'], 1)
+        p.write_bytes(b'changed')
+        with self.assertRaisesRegex(ValueError, 'PROJECT_SOURCE_MISMATCH'):
+            verify_projection(self.root, self.anchor, projection)
+
     def test_evidence(self):
         subprocess.run(['git','init','-q',str(self.root)],check=True)
         git(self.root,'config','user.name','TEST');git(self.root,'config','user.email','test@example.invalid')
