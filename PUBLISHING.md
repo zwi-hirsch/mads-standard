@@ -16,15 +16,15 @@ Copy **contents** of the source distribution directory to the public repo root (
 - `MULTI-AGENT-DEVELOPMENT-SYSTEM.md`
 - `README.md`, `SECURITY.md`, `PUBLISHING.md`, `MADS-VERSION.yaml`
 - `templates/mads/v2/*`
-- `scripts/build_release.py`, `scripts/successor_broker.py`, `scripts/test_successor_broker.py`, `scripts/mads_verify.py`, `scripts/test_mads_verify.py`, `scripts/check_release.py`
+- `scripts/build_release.py`, `scripts/successor_broker.py`, `scripts/test_successor_broker.py`, `scripts/mads_verify.py`, `scripts/test_mads_verify.py`, `scripts/check_release.py`, `scripts/intake_history.py`, `scripts/test_intake_history.py`, `scripts/intake_gate.py`, `scripts/test_intake_gate.py`
 
 No old workspace, tickets, role memory, Git mailbox history, customer data, private SHA claims, credentials, user chat transcripts, test evidence or toolchains may be copied. Inspect all files and run secret/private-identifier scan before copying.
 
 ## Release
 
 1. Review the license, add a correct `LICENSE` file and set `publication_status: RELEASE_READY` in `MADS-VERSION.yaml` for an approved publication source. This is permission to build a non-draft archive, not proof of publication. Only claim a released version after exact immutable tag and both assets have been verified. An authorized publishing environment may run the documented release procedure directly; no dependency on hosted runner availability. The automated publisher accepts `RELEASE_READY` or `RELEASED`; do not use either state to conceal a missing release.
-2. Run `python3 scripts/build_release.py --out dist` in a clean checkout of the **public** repo. The deterministic script checks the 26 release payload files (including LICENSE), 33 sections, basic secret patterns, UTF-8 and the LICENSE/status gate. It writes `mads-standard-v2.0.7.zip`, the SHA256 sidecar and an embedded per-file manifest; confirm clean unzip/manifest.
-3. Review a PR and merge approved standard content. Tag the exact commit `v2.0.7`; run the verified `.github/workflows/release-v2.yml` automated publisher (or GitHub Releases with exactly the same generated ZIP and `.sha256`) and verify the release/tag/assets.
+2. Run `python3 scripts/build_release.py --out dist` in a clean checkout of the **public** repo. The deterministic script checks the 31 release payload files (including LICENSE), 34 sections, basic secret patterns, UTF-8 and the LICENSE/status gate. It writes `mads-standard-v2.0.8.zip`, the SHA256 sidecar and an embedded per-file manifest; confirm clean unzip/manifest.
+3. Review a PR and merge approved standard content. Tag the exact commit `v2.0.8`; run the verified `.github/workflows/release-v2.yml` automated publisher (or GitHub Releases with exactly the same generated ZIP and `.sha256`) and verify the release/tag/assets.
 4. Re-download as anonymous/public reader, verify SHA256 and that every file can be read **without signing into a private project**.
 5. For each adopting project, copy the released files into its own repo, record project-local `docs/mads/MADS-VERSION-LOCK.yaml` with tag/SHA256/adoption commit, and run MADS G0–G13. Never update from mutable upstream `main` automatically.
 

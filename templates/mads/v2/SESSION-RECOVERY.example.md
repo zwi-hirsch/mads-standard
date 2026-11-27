@@ -29,3 +29,6 @@ Recover orphaned source/evidence and transaction journal against actual remote r
 
 ## Owner-preauthorized automatic recovery (§32)
 When an independently accepted broker is installed for this role, use the authenticated replacement launch and exact offer/ACK activation transaction in [SUCCESSOR-BROKER.example.md](SUCCESSOR-BROKER.example.md). Otherwise follow §29 manually. No self-issued epoch, no external worker replacement, no automatic source rights from chat initialization.
+
+## Mandatory intake continuity (§34)
+Before any new work recover frozen intake snapshots, all unresolved source/results and exact target PR/QA/main evidence, read global and personal decisions and ACK. A successor with ACTIVE lease but unresolved intake is INTAKE_ONLY, not permission to start new work. Preserve all historical source roots and do not delete or reassign unresolved results. Missing inventory or unread mail means BLOCKED_RESTORE/INTAKE; no automatic broker permission.

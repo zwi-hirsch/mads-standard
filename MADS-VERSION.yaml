@@ -1,7 +1,7 @@
 schema: mads.release.v1
 name: MULTI-AGENT DEVELOPMENT SYSTEM
-version: "2.0.7"
-normative_sections: 33
+version: "2.0.8"
+normative_sections: 34
 publication_status: STAGED_NOT_PUBLISHED
 source_of_truth_after_release: mads-standard
 canonical_branch: main
@@ -14,11 +14,15 @@ artifacts:
   - scripts/test_mads_verify.py
   - scripts/check_release.py
   - scripts/build_release.py
+  - scripts/intake_history.py
+  - scripts/test_intake_history.py
+  - scripts/intake_gate.py
+  - scripts/test_intake_gate.py
 integrity:
   release_trust_manifest: OWNER_APPROVED_OUT_OF_BAND_SHA256_REQUIRED
   release_sha256_manifest: VERIFY_RELEASE_ASSET_SHA256_AT_PUBLICATION
   git_commit_sha: RESOLVE_FROM_IMMUTABLE_RELEASE_TAG
-  release_tag: v2.0.7
+  release_tag: v2.0.8
   release_url: null # set only after immutable release is published
   zip_sha256: VERIFY_RELEASE_ASSET_SHA256_AT_PUBLICATION
 adoption:

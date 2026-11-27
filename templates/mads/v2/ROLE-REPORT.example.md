@@ -37,3 +37,9 @@ status: PARTIAL_OR_DONE_AS_EVIDENCED
 ## Resumable publication (§31)
 - transaction_id, reserved report ID, prior checkpoint, exact remote source and evidence pins; publication stage and verified readback.
 - Partial evidence and missing raw RC/logs explicit; recovery/correction links original report/reservation and old session, new actual author/session; reconcile status by valid CAS only.
+
+## Mandatory result intake (§34)
+- Frozen snapshot ID, exact source/target/evidence pins, unique work IDs, origin role/epoch, all prior unresolved obligations.
+- Actual per-cycle transitions HANDOFF_READY / IMPORTED_TO_PR / INDEPENDENT_QA_PASS / MERGED_TO_MAIN; explicit rejected/superseded dispositions and replacement; pending and missing history, next action/owner.
+- Per milestone fixed verified checkpoints previous/current/delta, per-role Git source/test +/- with exact BASE/HEAD, imported-origin attribution, no logs or generated files counted as authored code.
+- No new feature/research refill if intake unresolved. Owner closure gate result with independent protected ref/PR/source/QA/merge readback. Coverage is not closure.

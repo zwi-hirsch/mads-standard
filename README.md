@@ -92,3 +92,7 @@ Reference CLI (the checker executable and anchor SHA-256 must be selected by the
 - Scope: python3 scripts/mads_verify.py scope --anchor approved-scope.json --anchor-sha256 APPROVED_SCOPE_SHA256 --repo source-checkout
 
 Projection schema mads.release-projection.v1 has release_source_commit and paths (upstream path -> project-local path). Evidence schema mads.evidence-binding.v1 has head, tree, locks_sha256, environment_sha256, inputs_sha256, argv, rc, artifacts_sha256 and schema. The Owner separately approves the expected receipt; execution and actor authenticity are still independent gates. Scope config contains registry, lease, order, task, forbidden (path lists), base and head (full commit IDs). Source scope supports literal canonical paths and directory/** only; unsupported patterns block instead of granting broader rights. The project adapter must independently derive these values from the live admission transaction, validate task kind, STOP/epoch/expiry and enforce protected writes. Use a trusted isolated read-only snapshot, not a concurrently mutable agent checkout.
+
+## v2.0.8 candidate — mandatory result intake
+
+§34 adds immutable historical inventory, four product progression states, intake-first restart and exit gates. See `scripts/intake_history.py`, `scripts/intake_gate.py` and `templates/mads/v2/INTAKE-LEDGER.example.md`. This stacked draft is separate from v2.0.7 review; no release or automatic project upgrade is implied.
